@@ -6,13 +6,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-
-	"github.com/zleague/backend/utils"
+	"zleague/backend_v2/utils"
 )
 
 // GetMoreWarzoneMatches does
-func GetMoreWarzoneMatches(username string) (utils.MatchData, error) {
-	var matchData utils.MatchData
+func GetMoreWarzoneMatches(username string) ([]utils.MatchData, error) {
 	var allMatches []utils.MatchData
 
 	reqs := []string{"null", "1598805852999", "1598214721999", "1598113460999", "1597612561999", "1597528982999", "1596998692999"}
@@ -28,11 +26,12 @@ func GetMoreWarzoneMatches(username string) (utils.MatchData, error) {
 		defer resp.Body.Close()
 		if resp.StatusCode == 200 {
 			body, err := ioutil.ReadAll(resp.Body)
-
+			var matchData utils.MatchData
 			err = json.Unmarshal(body, &matchData)
 			if err != nil {
 				log.Fatal(err)
 			}
+			allMatches = append(allMatches, matchData)
 		}
 	}
 	return allMatches, nil

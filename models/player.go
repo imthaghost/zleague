@@ -16,19 +16,19 @@ type Player struct {
 		TotalWins      int
 		TotalScore     int
 	}
-	Username    string
-	Wins        int
-	Kills       int
-	Score       int
-	Assists     int
-	Deaths      int
-	KD          float64
-	GamesPlayed int
-	DamageDone  int
-	Headshots   int
-	Teamname    string
-	Avatar      string
-	Level       struct {
+	Username        string
+	Wins            int
+	Kills           int
+	PlacementPoints int
+	Assists         int
+	Deaths          int
+	KD              float64
+	GamesPlayed     int
+	DamageDone      int
+	Headshots       int
+	Teamname        string
+	Avatar          string
+	Level           struct {
 		Value     int
 		LevelIcon string
 	}

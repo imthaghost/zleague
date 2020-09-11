@@ -17,7 +17,7 @@ func Create(start, end time.Time) map[string]TeamBasic {
 		log.Println(err)
 	}
 	// file path
-	filepath := path + "/master.csv"
+	filepath := path + "/test.csv"
 	inputfile, err := os.Open(filepath)
 	if err != nil {
 		log.Fatal(err)
@@ -39,8 +39,7 @@ func Create(start, end time.Time) map[string]TeamBasic {
 
 		// teamname is present in map
 		if _, ok := teamMap[team]; ok {
-			t := teamMap[team] // reference map
-			fmt.Println("here")
+			t := teamMap[team]                        // reference map
 			t.Teammates = append(t.Teammates, player) // append player to appopriate team
 			teamMap[team] = t
 		} else { // not present in map
