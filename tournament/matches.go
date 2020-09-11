@@ -6,10 +6,13 @@ import (
 	"zleague/api/utils"
 )
 
+// updates the stats of a given player, takes a player and a list of matches as an argument
 func updateStats(player *models.Player, matches utils.MatchData) []models.Match {
 	var newMatches []models.Match
 
+	// iterate over the matches
 	for i, match := range matches.Data.Matches {
+		// checks to make sure the match is during the tournament times and is an allowed type of match
 		if match.Metadata.Timestamp.Before(player.TournamentStartTime) {
 			if i != 0 {
 				player.LastMatch = matches.Data.Matches[0].Attributes.ID
@@ -24,6 +27,7 @@ func updateStats(player *models.Player, matches utils.MatchData) []models.Match 
 			continue
 		}
 
+		// create a new match structure and store the data from the API
 		newMatch := models.Match{
 			ID:         match.Attributes.ID,
 			Mode:       match.Metadata.ModeName,
@@ -39,9 +43,11 @@ func updateStats(player *models.Player, matches utils.MatchData) []models.Match 
 			Score:      utils.Scoreboard[match.Segments[0].Stats.Placement.Value],
 		}
 
+		// append the matches into the player reference and into a newMatches array
 		player.Matches = append(player.Matches, newMatch)
 		newMatches = append(newMatches, newMatch)
 
+		// add stats to the players total
 		player.Total.TotalKills += int(match.Segments[0].Stats.Kills.Value)
 		player.Total.TotalAssists += int(match.Segments[0].Stats.Assists.Value)
 		player.Total.TotalDamage += int(match.Segments[0].Stats.DamageDone.Value)
@@ -51,6 +57,7 @@ func updateStats(player *models.Player, matches utils.MatchData) []models.Match 
 		player.Total.TotalScore += newMatch.Score
 		player.GamesPlayed++
 
+		// check if player won the game
 		if newMatch.Placement == 1 {
 			player.Total.TotalWins++
 		}
@@ -58,6 +65,7 @@ func updateStats(player *models.Player, matches utils.MatchData) []models.Match 
 	return newMatches
 }
 
+// not done, but will allow to check past tournaments
 func updateAll(player *models.Player, matches []utils.MatchData) []models.Match {
 	var newMatches []models.Match
 

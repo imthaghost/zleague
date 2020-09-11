@@ -12,11 +12,12 @@ import (
 func CreatePlayer(username, teamname string, startTime, endTime time.Time) models.Player {
 	stats, err := cod.GetWarzoneStats(username)
 	if err != nil {
-		// TODO: Figure out what to do if player use
+		// TODO: Figure out what to do if player username doesnt exist
 		log.Println(err)
 		return models.Player{}
 	}
 
+	// instantiate a player model to store the data in.
 	player := models.Player{
 		TournamentStartTime: startTime,
 		TournamentEndTime:   endTime,
@@ -47,23 +48,32 @@ func CreatePlayer(username, teamname string, startTime, endTime time.Time) model
 	return player
 }
 
+// goroutine worker to update each individual plater concurrently
 func playerWorker(playerChan chan *models.Player, fin chan bool) {
+	// checks the channel for players to update
 	for player := range playerChan {
+		// updates them and checks for errors
 		all, err := cod.GetWarzoneMatches(player.Username)
 		if err != nil {
 			log.Println(all)
 		}
 
-		player.Matches = updateStats(player, all)
+		// add the matches from the updateStats function to the player
+		// player.Matches = updateStats(player, all)
 
+		// sort and add the best matches into the bestMatches array
 		player.BestMatches = sortMatches(player.Matches, 4)
 
+		// finally update the stats of the player
 		updatePlayer(player)
+		// pass a value into the finalize channel, can be used to create a progress bar
 		fin <- true
 	}
 }
 
+// updates the stats of the player based off of the matches they have stored
 func updatePlayer(player *models.Player) {
+	// resets the stats of the player to zero
 	player.Kills = 0
 	player.Deaths = 0
 	player.Assists = 0
@@ -72,6 +82,7 @@ func updatePlayer(player *models.Player) {
 	player.DamageDone = 0
 	player.PlacementPoints = 0
 
+	// iterate over all of the matches and update the stats
 	for _, match := range player.BestMatches {
 		player.Kills += match.Kills
 		player.Deaths += match.Deaths
@@ -83,10 +94,12 @@ func updatePlayer(player *models.Player) {
 	}
 }
 
-func sortMatches(matches []models.Match, num int) []models.Match {
+// sorts the matches and returns the n best matches
+func sortMatches(matches []models.Match, n int) []models.Match {
 	sort.Sort(models.ByScore(matches))
-	if len(matches) > num {
-		matches = matches[:num]
+	// slice the array if more than n
+	if len(matches) > n {
+		matches = matches[:n]
 	}
 	return matches
 }
