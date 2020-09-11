@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	now := time.Now()
 	// try parsing start time
 	start, err := time.Parse(time.RFC3339, "2020-09-11T01:50:00+00:00")
 	if err != nil {
@@ -37,5 +38,5 @@ func main() {
 		log.Println(err)
 	}
 
-	fmt.Println(res)
+	fmt.Println(res, time.Now().Sub(now))
 }
