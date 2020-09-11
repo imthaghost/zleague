@@ -2,8 +2,8 @@ package tournament
 
 import (
 	"fmt"
-	"zleague/backend_v2/models"
-	"zleague/backend_v2/utils"
+	"zleague/api/models"
+	"zleague/api/utils"
 )
 
 func updateStats(player *models.Player, matches utils.MatchData) []models.Match {

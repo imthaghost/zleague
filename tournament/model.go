@@ -2,7 +2,7 @@ package tournament
 
 import (
 	"time"
-	"zleague/backend_v2/models"
+	"zleague/api/models"
 
 	"github.com/robfig/cron"
 )

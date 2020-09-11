@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"time"
-	"zleague/backend_v2/tournament"
+	"zleague/api/tournament"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -13,12 +13,12 @@ import (
 
 func main() {
 	// try parsing start time
-	start, err := time.Parse(time.RFC3339, "2020-09-08T09:20:00+00:00")
+	start, err := time.Parse(time.RFC3339, "2020-09-11T01:50:00+00:00")
 	if err != nil {
 		log.Fatal(err)
 	}
 	// try parsing end time
-	end, err := time.Parse(time.RFC3339, "2020-09-08T14:00:00+00:00")
+	end, err := time.Parse(time.RFC3339, "2020-09-11T4:50:00+00:00")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,7 +26,7 @@ func main() {
 
 	t := tournament.NewTournament(teams, start, end)
 
-	t.UpdateTeam()
+	t.Update()
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {

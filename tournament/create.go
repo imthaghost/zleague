@@ -2,7 +2,6 @@ package tournament
 
 import (
 	"encoding/csv"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -48,6 +47,5 @@ func Create(start, end time.Time) map[string]TeamBasic {
 			teamMap[team] = p                                                     // create key value pair
 		}
 	}
-	fmt.Println("created map")
 	return teamMap
 }

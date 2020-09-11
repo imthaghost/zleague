@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"zleague/backend_v2/utils"
+	"zleague/api/utils"
 )
 
 // GetMoreWarzoneMatches does

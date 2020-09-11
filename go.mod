@@ -1,4 +1,4 @@
-module zleague/backend_v2
+module zleague/api
 
 go 1.14
 

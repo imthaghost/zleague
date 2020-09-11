@@ -1,8 +1,7 @@
 package tournament
 
 import (
-	"fmt"
-	"zleague/backend_v2/models"
+	"zleague/api/models"
 )
 
 func createTeams(t map[string]TeamBasic) []models.Team {
@@ -22,7 +21,6 @@ func createTeams(t map[string]TeamBasic) []models.Team {
 	for i := 0; i < len(t); i++ {
 		allTeams = append(allTeams, <-teamChan)
 	}
-	fmt.Println("Created Teams")
 	return allTeams
 }
 
@@ -100,25 +98,23 @@ func updateTeam(team *models.Team) *models.Team {
 }
 
 // UpdateTeam does
-func (t *Tournament) UpdateTeam() {
+func (t *Tournament) Update() {
 	teamChan := make(chan *models.Team, 1000)
 	updateChan := make(chan *models.Team, 1000)
 	player := make(chan *models.Player, 1000)
 	fin := make(chan bool, 1000)
 
-	fmt.Println("start worker")
 	for i := 0; i < 20; i++ {
 		go updateWorker(teamChan, player)
 		go playerWorker(player, fin)
 		go updateTeamStatsWorker(updateChan, fin)
 	}
-	fmt.Println("20 workers started")
 
 	for i := range t.Teams {
 		teamChan <- &t.Teams[i]
 	}
 
-	for i := 0; i < 1; i++ {
+	for i := 0; i < (len(t.Teams) * 3); i++ {
 		<-fin
 	}
 
@@ -126,7 +122,7 @@ func (t *Tournament) UpdateTeam() {
 		updateChan <- &t.Teams[i]
 	}
 
-	for i := 0; i < 1; i++ {
+	for i := 0; i < len(t.Teams); i++ {
 		<-fin
 	}
 }

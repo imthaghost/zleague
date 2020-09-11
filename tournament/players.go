@@ -1,12 +1,11 @@
 package tournament
 
 import (
-	"fmt"
 	"log"
 	"sort"
 	"time"
-	"zleague/backend_v2/cod"
-	"zleague/backend_v2/models"
+	"zleague/api/cod"
+	"zleague/api/models"
 )
 
 // CreatePlayer creates a default Player instance
@@ -82,7 +81,6 @@ func updatePlayer(player *models.Player) {
 		player.DamageDone += match.DamageDone
 		player.PlacementPoints += match.Score
 	}
-	fmt.Println(player.Total.TotalKills)
 }
 
 func sortMatches(matches []models.Match, num int) []models.Match {
