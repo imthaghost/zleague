@@ -12,12 +12,12 @@ func (h *Handler) NewTournament(c echo.Context) (err error) {
 	// try parsing start time
 	start, err := time.Parse(time.RFC3339, "2020-09-11T01:50:00+00:00")
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Line 15 NewTournament:", err)
 	}
 	// try parsing end time
 	end, err := time.Parse(time.RFC3339, "2020-09-11T4:50:00+00:00")
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Line 20 NewTournament:", err)
 	}
 
 	// create a new tournament

@@ -30,6 +30,7 @@ func (s *Server) Routes() {
 	// Get Team Data
 	// Update Team Data
 	// Get All Teams
+	s.e.GET("/teams/:id", r.GetTeams)
 
 	// Verify Player
 }

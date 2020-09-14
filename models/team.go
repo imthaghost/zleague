@@ -39,7 +39,7 @@ type BasicTeam struct {
 }
 
 // ByPoints does
-type ByPoints []BasicTeam
+type ByPoints []Team
 
 func (a ByPoints) Len() int           { return len(a) }
 func (a ByPoints) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }

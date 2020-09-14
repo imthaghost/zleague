@@ -16,16 +16,18 @@ import (
 // It does this through a database, where it stores current tournaments and information about them.
 // You can create new tournaments, delete tournaments, and more.
 type TournamentManager struct {
-	tournaments map[string]Tournament // represents all current tournaments
+	Tournaments map[string]Tournament // represents all current tournaments
 	client      http.Client
 	cron        *cron.Cron
+	DB          *mongo.Database
 }
 
 // NewTournamentManager will create a new instance of tournament manager.
 // By default, it will load tournaments that are currently in the database so that they can be interacted with.
 func NewTournamentManager(db *mongo.Database) *TournamentManager {
 	m := &TournamentManager{
-		tournaments: map[string]Tournament{},
+		Tournaments: map[string]Tournament{},
+		DB:          db,
 	}
 	ctx, _ := context.WithTimeout(context.Background(), 15*time.Second)
 	// in here, we want to load the tournaments that already exist
@@ -45,7 +47,7 @@ func NewTournamentManager(db *mongo.Database) *TournamentManager {
 		}
 
 		// add the tournament to the map
-		m.tournaments[tournament.ID] = tournament
+		m.Tournaments[tournament.ID] = tournament
 	}
 
 	return m
@@ -60,7 +62,7 @@ func (t *TournamentManager) Start() {
 
 	// start a new loop for every tournament
 	log.Println("Starting cron:")
-	for id, tournament := range t.tournaments {
+	for id, tournament := range t.Tournaments {
 		log.Println("Starting Update loop for tournament id: ", id)
 		// call function every 10 minutes
 		c.AddFunc(schedule, func() {
@@ -85,20 +87,19 @@ func (t *TournamentManager) Start() {
 	t.cron = c
 }
 
-// NewTourament is designed to create a new tournament, and then save it to the struct and the database and return it
+// NewTournament is designed to create a new tournament, and then save it to the struct and the database and return it
 func (t *TournamentManager) NewTournament(db *mongo.Database, start, end time.Time, id string) Tournament {
 	// create a new tournament
 	// TODO: Start the cron job for this tournament because it wont be started from the "start"
 	teams := Create(start, end)
 	newTournament := NewTournament(teams, id, start, end)
 
-	_, err := db.Collection("tournaments").InsertOne(context.TODO(), newTournament)
-
+	err := newTournament.Insert(db)
 	if err != nil {
 		log.Println("manager: error creating new tournament in db: ", err)
 	}
 
-	t.tournaments[newTournament.ID] = newTournament
+	t.Tournaments[newTournament.ID] = newTournament
 
 	schedule := "@every 1m"
 	t.cron.AddFunc(schedule, func() {
