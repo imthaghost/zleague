@@ -57,6 +57,12 @@ func GetWarzoneMatches(username string) (utils.MatchData, error) {
 			log.Fatal(err)
 		}
 		return matchData, nil
+	} else if resp.StatusCode == 500 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Println(err)
+		}
+		fmt.Println(string(body))
 	}
 
 	return matchData, fmt.Errorf("GetWarzoneMatches: status code %d: %s", resp.StatusCode, username)
