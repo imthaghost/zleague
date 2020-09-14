@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"zleague/api/db"
 	"zleague/api/tournament"
-
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
@@ -29,15 +27,8 @@ func main() {
 
 	t.Update()
 
-	auth := options.Credential{
-		Username: "root",
-		Password: "AVeryStrongPassword1234",
-	}
+	client := db.Connect()
 
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://localhost:27017").SetAuth(auth))
-	if err != nil {
-		log.Fatal(err)
-	}
 	res, err := client.Database("tournaments").Collection("tournament").InsertOne(context.TODO(), t)
 	if err != nil {
 		log.Println(err)
