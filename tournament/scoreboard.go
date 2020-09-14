@@ -1,4 +1,4 @@
-package utils
+package tournament
 
 // Scoreboard how placement points are calculated
 var Scoreboard = map[int]int{
