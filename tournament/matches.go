@@ -11,21 +11,18 @@ func updateStats(player *models.Player, matches utils.MatchData) {
 	var newMatches []models.Match
 
 	// iterate over the matches
-	for i, match := range matches.Data.Matches {
+	for _, match := range matches.Data.Matches {
 		// checks to make sure the match is during the tournament times and is an allowed type of match
-		if match.Metadata.Timestamp.Before(player.TournamentStartTime) {
-			if i != 0 {
-				player.LastMatch = matches.Data.Matches[0].Attributes.ID
-			}
+		if match.Attributes.ID == player.LastMatch {
+			break
+		} else if match.Metadata.Timestamp.Before(player.TournamentStartTime) {
 			break
 		} else if match.Metadata.Timestamp.After(player.TournamentEndTime) {
 			continue
-		} else if match.Attributes.ID == player.LastMatch {
-			player.LastMatch = matches.Data.Matches[0].Attributes.ID
-			break
 		} else if match.Attributes.ModeID != "br_brtrios" {
 			continue
 		}
+		fmt.Println(player.Username, match.Attributes.ID, "!=", player.LastMatch)
 
 		// create a new match structure and store the data from the API
 		newMatch := models.Match{
@@ -62,7 +59,9 @@ func updateStats(player *models.Player, matches utils.MatchData) {
 			player.Total.TotalWins++
 		}
 	}
-	// return newMatches
+	if len(matches.Data.Matches) != 0 {
+		player.LastMatch = matches.Data.Matches[0].Attributes.ID
+	}
 }
 
 // not done, but will allow to check past tournaments
@@ -85,7 +84,6 @@ func updateAll(player *models.Player, matches []utils.MatchData) []models.Match 
 				continue
 			}
 
-			fmt.Println(match)
 			newMatch := models.Match{
 				ID:         match.Attributes.ID,
 				Mode:       match.Metadata.ModeName,

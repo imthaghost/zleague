@@ -48,7 +48,6 @@ func GetWarzoneMatches(username string) (utils.MatchData, error) {
 
 	defer resp.Body.Close()
 
-	fmt.Println(resp.StatusCode)
 	if resp.StatusCode == 200 {
 		body, err := ioutil.ReadAll(resp.Body)
 
