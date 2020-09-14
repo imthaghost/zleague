@@ -89,7 +89,7 @@ func GetWarzoneStats(username string) (utils.StatData, error) {
 }
 
 // CheckUser checks if a user with the username exists
-func CheckUser(user string) bool {
+func IsValid(user string) bool {
 	resp, err := http.Get(fmt.Sprintf("https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/%s", user))
 	if err != nil {
 		log.Fatal(err)

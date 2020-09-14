@@ -19,9 +19,8 @@ func (h *Handler) NewTournament(c echo.Context) (err error) {
 	if err != nil {
 		log.Println("Line 20 NewTournament:", err)
 	}
-
 	// create a new tournament
 	h.manager.NewTournament(h.db, start, end, "123458")
-
+	// resp - 200 - check ur console hoe
 	return c.JSON(http.StatusOK, "check ur console hoe")
 }

@@ -24,13 +24,18 @@ func (s *Server) Routes() {
 	// TODO: protect with basic "password" as auth header or something
 	// Create Tournament
 	s.e.POST("/tournament", r.NewTournament)
+
 	// Get single tournament
+
 	// Update a single tournament
 
 	// Get Team Data
+	s.e.GET("/team/:teamname", r.GetTeam)
 	// Update Team Data
+
 	// Get All Teams
 	s.e.GET("/teams/:id", r.GetTeams)
 
 	// Verify Player
+	s.e.GET("/check/:id", r.Verify)
 }

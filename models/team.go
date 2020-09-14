@@ -1,5 +1,13 @@
 package models
 
+import (
+	"context"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
 // Team does
 type Team struct {
 	Teamname        string
@@ -44,3 +52,15 @@ type ByPoints []Team
 func (a ByPoints) Len() int           { return len(a) }
 func (a ByPoints) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByPoints) Less(i, j int) bool { return a[i].TotalPoints > a[j].TotalPoints }
+
+// FindTeam finds a team with the matching team name
+func (t *Team) FindTeam(db *mongo.Database, teamName string) (Team, error) {
+
+	coll := db.Collection("teams")
+
+	err := coll.FindOne(context.TODO(), bson.D{primitive.E{Key: "teamname", Value: teamName}}).Decode(&t)
+	if err != nil {
+		return Team{}, err
+	}
+	return *t, nil
+}

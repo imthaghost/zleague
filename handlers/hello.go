@@ -6,8 +6,10 @@ import (
 	"github.com/labstack/echo"
 )
 
+// Hello from ZLeague
 func (h *Handler) Hello(c echo.Context) (err error) {
-	res := map[string]string{"msg": "hello from zleague!"}
-
+	// hello :)
+	res := map[string]string{"msg": "Hello from ZLeague!"}
+	// 200 - OK
 	return c.JSON(http.StatusOK, res)
 }
