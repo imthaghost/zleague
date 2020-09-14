@@ -1,8 +1,6 @@
 package server
 
 import (
-	"crypto/subtle"
-	"os"
 	"zleague/api/handlers"
 
 	"github.com/labstack/echo/v4"
@@ -18,13 +16,13 @@ func (s *Server) Routes() {
 		AllowMethods: []string{echo.GET, echo.POST, echo.DELETE, echo.PATCH},
 	}))
 	// Basic Auth
-	s.e.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
-		if subtle.ConstantTimeCompare([]byte(username), []byte(os.Getenv("SERVER_USERNAME"))) == 1 &&
-			subtle.ConstantTimeCompare([]byte(password), []byte(os.Getenv("SERVER_PASSWORD"))) == 1 {
-			return true, nil
-		}
-		return false, nil
-	}))
+	// s.e.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
+	// 	if subtle.ConstantTimeCompare([]byte(username), []byte(os.Getenv("SERVER_USERNAME"))) == 1 &&
+	// 		subtle.ConstantTimeCompare([]byte(password), []byte(os.Getenv("SERVER_PASSWORD"))) == 1 {
+	// 		return true, nil
+	// 	}
+	// 	return false, nil
+	// }))
 
 	// create a new handler and dependency inject the db and the tournament manager
 	r := handlers.NewHandler(s.db, s.manager)
