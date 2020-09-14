@@ -9,6 +9,7 @@ import (
 )
 
 func Connect() *mongo.Client {
+	// TODO: .env creds
 	auth := options.Credential{
 		Username: "root",
 		Password: "AVeryStrongPassword1234",
