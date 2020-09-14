@@ -1,7 +1,6 @@
 package tournament
 
 import (
-	"fmt"
 	"log"
 	"sort"
 	"time"
@@ -53,7 +52,6 @@ func CreatePlayer(username, teamname string, startTime, endTime time.Time) model
 func playerWorker(playerChan chan *models.Player, fin chan bool) {
 	// checks the channel for players to update
 	for player := range playerChan {
-		fmt.Println(1)
 		// updates them and checks for errors
 		all, err := cod.GetWarzoneMatches(player.Username)
 		if err != nil {

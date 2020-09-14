@@ -1,6 +1,7 @@
 package tournament
 
 import (
+	"sort"
 	"zleague/api/models"
 )
 
@@ -146,6 +147,8 @@ func (t *Tournament) Update() {
 	for i := 0; i < len(t.Teams); i++ {
 		<-fin
 	}
+	// Sort the teams by the number of points they have
+	sort.Sort(models.ByPoints(t.Teams))
 }
 
 // updateWorker goroutine handles updating all of the players on the team

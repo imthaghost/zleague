@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"zleague/api/db"
 
 	"github.com/robfig/cron"
 	"go.mongodb.org/mongo-driver/bson"
@@ -77,6 +78,7 @@ func (t *TournamentManager) Start() {
 			// Update all the teams
 			log.Println("updating due to start")
 			tournament.Update()
+			tournament.UpdateInDB(db.Connect())
 		})
 	}
 
@@ -114,6 +116,7 @@ func (t *TournamentManager) NewTournament(db *mongo.Database, start, end time.Ti
 		// Update all the teams
 		log.Println("updating due to create")
 		newTournament.Update()
+		newTournament.UpdateInDB(db)
 	})
 
 	return newTournament
