@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"zleague/api/cod"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 func (h *Handler) Verify(c echo.Context) error {
