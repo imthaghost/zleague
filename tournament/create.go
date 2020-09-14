@@ -16,7 +16,11 @@ func Create(start, end time.Time) map[string]TeamBasic {
 		log.Println(err)
 	}
 	// file path
+<<<<<<< HEAD
 	filepath := path + "/master.csv"
+=======
+	filepath := path + "/test.csv"
+>>>>>>> b8391d51817058c57709252e719f7a0e414391ac
 	inputfile, err := os.Open(filepath)
 	if err != nil {
 		log.Fatal(err)
@@ -39,7 +43,7 @@ func Create(start, end time.Time) map[string]TeamBasic {
 		// teamname is present in map
 		if _, ok := teamMap[team]; ok {
 			t := teamMap[team]                        // reference map
-			t.Teammates = append(t.Teammates, player) // append player to appopriate team
+			t.Teammates = append(t.Teammates, player) // append player to appropriate team
 			teamMap[team] = t
 		} else { // not present in map
 			p := TeamBasic{Division: div, Teamname: team, Start: start, End: end} // create new struct reference
@@ -47,5 +51,6 @@ func Create(start, end time.Time) map[string]TeamBasic {
 			teamMap[team] = p                                                     // create key value pair
 		}
 	}
+
 	return teamMap
 }
