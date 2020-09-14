@@ -10,19 +10,24 @@ import (
 
 type Server struct {
 	e       *echo.Echo
-	db      *mongo.Client
+	db      *mongo.Database
 	manager *tournament.TournamentManager
 }
 
 // NewServer will create a new instance of the server.
-func NewServer(database *mongo.Client) *Server {
+func NewServer(database *mongo.Database) *Server {
 	if database == nil {
 		database = db.Connect()
 	}
 
+	// create and start the tournament manager
+	manager := tournament.NewTournamentManager(database)
+	manager.Start()
+
 	return &Server{
-		e:  echo.New(),
-		db: database,
+		e:       echo.New(), // new echo server to server the api
+		db:      database,   // mongo database to store stuff
+		manager: manager,    // tournament manager
 	}
 }
 

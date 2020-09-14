@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func Connect() *mongo.Client {
+func Connect() *mongo.Database {
 	// TODO: .env creds
 	auth := options.Credential{
 		Username: "root",
@@ -20,5 +20,5 @@ func Connect() *mongo.Client {
 		log.Fatal(err)
 	}
 
-	return client
+	return client.Database("zleague")
 }

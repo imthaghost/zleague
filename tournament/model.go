@@ -3,17 +3,15 @@ package tournament
 import (
 	"time"
 	"zleague/api/models"
-
-	"github.com/robfig/cron"
 )
 
 // Tournament struct holds the information needed to start a tournament.
 // TeamMates is an array of Activision Usernames.
 type Tournament struct {
+	ID        string
 	StartTime time.Time
 	EndTime   time.Time
 	Teams     []models.Team
-	Cron      *cron.Cron
 }
 
 // TeamBasic holds a simple struct of what a team consists of.
