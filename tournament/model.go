@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 	"zleague/api/models"
-
 	"github.com/robfig/cron"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,10 +13,10 @@ import (
 // Tournament struct holds the information needed to start a tournament.
 // TeamMates is an array of Activision Usernames.
 type Tournament struct {
+	ID        string
 	StartTime time.Time
 	EndTime   time.Time
 	Teams     []models.Team
-	Cron      *cron.Cron
 }
 
 // TeamBasic holds a simple struct of what a team consists of.
@@ -29,7 +28,7 @@ type TeamBasic struct {
 	Division  string
 }
 
-func (t Tournament) Insert(db *mongo.Database) {
+func (t *Tournament) Insert(db *mongo.Database) {
 	coll := db.Collection("tournament")
 
 	_, err := coll.InsertOne(context.TODO(), t)
@@ -38,7 +37,7 @@ func (t Tournament) Insert(db *mongo.Database) {
 	}
 }
 
-func (t Tournament) UpdateInDB(db *mongo.Database) {
+func (t *Tournament) UpdateInDB(db *mongo.Database) {
 	coll := db.Collection("tournament")
 
 	filter := bson.M{

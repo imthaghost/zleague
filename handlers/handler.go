@@ -7,11 +7,11 @@ import (
 )
 
 type Handler struct {
-	db      *mongo.Client
+	db      *mongo.Database
 	manager *tournament.TournamentManager
 }
 
-func NewHandler(db *mongo.Client, manager *tournament.TournamentManager) *Handler {
+func NewHandler(db *mongo.Database, manager *tournament.TournamentManager) *Handler {
 	return &Handler{
 		db,
 		manager,

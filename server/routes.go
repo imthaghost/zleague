@@ -9,7 +9,7 @@ import (
 
 func (s *Server) Routes() {
 	s.e.Use(middleware.Logger())
-	s.e.Use(middleware.Recover())
+	// s.e.Use(middleware.Recover())
 	s.e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{echo.GET, echo.POST, echo.DELETE, echo.PATCH},
@@ -20,4 +20,16 @@ func (s *Server) Routes() {
 
 	// Heya!
 	s.e.GET("/", r.Hello)
+
+	// TODO: protect with basic "password" as auth header or something
+	// Create Tournament
+	s.e.POST("/tournament", r.NewTournament)
+	// Get single tournament
+	// Update a single tournament
+
+	// Get Team Data
+	// Update Team Data
+	// Get All Teams
+
+	// Verify Player
 }
