@@ -3,8 +3,8 @@ package server
 import (
 	"zleague/api/handlers"
 
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func (s *Server) Routes() {

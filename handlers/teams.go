@@ -7,7 +7,7 @@ import (
 	"zleague/api/models"
 	"zleague/api/tournament"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // GetTeams returns all teams from a tournament
