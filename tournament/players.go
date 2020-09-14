@@ -48,7 +48,7 @@ func CreatePlayer(username, teamname string, startTime, endTime time.Time) model
 	return player
 }
 
-// goroutine worker to update each individual plater concurrently
+// goroutine worker to update each individual player concurrently
 func playerWorker(playerChan chan *models.Player, fin chan bool) {
 	// checks the channel for players to update
 	for player := range playerChan {

@@ -29,7 +29,12 @@ func main() {
 
 	t.Update()
 
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://localhost:27017"))
+	auth := options.Credential{
+		Username: "root",
+		Password: "AVeryStrongPassword1234",
+	}
+
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://localhost:27017").SetAuth(auth))
 	if err != nil {
 		log.Fatal(err)
 	}
