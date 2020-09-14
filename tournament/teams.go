@@ -118,7 +118,7 @@ func (t *Tournament) Update() {
 
 	// instantiate 20 workers on each goroutine
 	// 20 is the max amount of workers before rate limiting from the API
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 1000; i++ {
 		go updateWorker(teamChan, player)
 		go playerWorker(player, fin)
 		go updateTeamStatsWorker(updateChan, fin)

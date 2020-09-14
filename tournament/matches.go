@@ -7,7 +7,7 @@ import (
 )
 
 // updates the stats of a given player, takes a player and a list of matches as an argument
-func updateStats(player *models.Player, matches utils.MatchData) []models.Match {
+func updateStats(player *models.Player, matches utils.MatchData) {
 	var newMatches []models.Match
 
 	// iterate over the matches
@@ -62,7 +62,7 @@ func updateStats(player *models.Player, matches utils.MatchData) []models.Match 
 			player.Total.TotalWins++
 		}
 	}
-	return newMatches
+	// return newMatches
 }
 
 // not done, but will allow to check past tournaments

@@ -1,6 +1,7 @@
 package tournament
 
 import (
+	"fmt"
 	"log"
 	"sort"
 	"time"
@@ -52,6 +53,7 @@ func CreatePlayer(username, teamname string, startTime, endTime time.Time) model
 func playerWorker(playerChan chan *models.Player, fin chan bool) {
 	// checks the channel for players to update
 	for player := range playerChan {
+		fmt.Println(1)
 		// updates them and checks for errors
 		all, err := cod.GetWarzoneMatches(player.Username)
 		if err != nil {
@@ -59,11 +61,10 @@ func playerWorker(playerChan chan *models.Player, fin chan bool) {
 		}
 
 		// add the matches from the updateStats function to the player
-		// player.Matches = updateStats(player, all)
+		updateStats(player, all)
 
 		// sort and add the best matches into the bestMatches array
 		player.BestMatches = sortMatches(player.Matches, 4)
-
 		// finally update the stats of the player
 		updatePlayer(player)
 		// pass a value into the finalize channel, can be used to create a progress bar
