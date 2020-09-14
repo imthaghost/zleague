@@ -10,12 +10,12 @@ import (
 
 func Connect() *mongo.Client {
 	// TODO: .env creds
-	auth := options.Credential{
-		Username: "root",
-		Password: "AVeryStrongPassword1234",
-	}
+	// auth := options.Credential{
+	// 	Username: "root",
+	// 	Password: "AVeryStrongPassword1234",
+	// }
 
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://localhost:27017").SetAuth(auth))
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {
 		log.Fatal(err)
 	}
