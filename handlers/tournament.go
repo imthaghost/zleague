@@ -10,6 +10,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// NewTournament will start a new tournament.
+// TODO: Allow the ability to start and end tournaments at any time, as well as be able to set best x games :)
 func (h *Handler) NewTournament(c echo.Context) (err error) {
 	// try parsing start time
 	start, err := time.Parse(time.RFC3339, "2020-09-11T01:50:00+00:00")
@@ -27,6 +29,7 @@ func (h *Handler) NewTournament(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, "check ur console hoe")
 }
 
+// GetTournament will return a tournament that is in the database
 func (h *Handler) GetTournament(c echo.Context) error {
 	// sanitize
 	id := html.EscapeString(c.Param("id"))
