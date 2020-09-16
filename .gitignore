@@ -1,4 +1,5 @@
-/data
 .env
 api
 .git
+zleague-api
+.DS_Store

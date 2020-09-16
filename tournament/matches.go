@@ -1,12 +1,16 @@
 package tournament
 
 import (
+<<<<<<< HEAD
+=======
+	"fmt"
+	"zleague/api/cod"
+>>>>>>> ebb6dfc064bc8f61355efd3f9fe2bce9849e9779
 	"zleague/api/models"
-	"zleague/api/utils"
 )
 
 // updates the stats of a given player, takes a player and a list of matches as an argument
-func updateStats(player *models.Player, matches utils.MatchData) {
+func updateStats(player *models.Player, matches cod.MatchData) {
 	var newMatches []models.Match
 
 	// iterate over the matches
@@ -35,7 +39,7 @@ func updateStats(player *models.Player, matches utils.MatchData) {
 			TimePlayed: match.Segments[0].Stats.TeamSurvivalTime.DisplayValue,
 			Placement:  match.Segments[0].Stats.Placement.Value,
 			DamageDone: int(match.Segments[0].Stats.DamageDone.Value),
-			Score:      utils.Scoreboard[match.Segments[0].Stats.Placement.Value],
+			Score:      Scoreboard[match.Segments[0].Stats.Placement.Value],
 		}
 
 		// append the matches into the player reference and into a newMatches array
@@ -63,7 +67,7 @@ func updateStats(player *models.Player, matches utils.MatchData) {
 }
 
 // not done, but will allow to check past tournaments
-func updateAll(player *models.Player, matches []utils.MatchData) []models.Match {
+func updateAll(player *models.Player, matches []cod.MatchData) []models.Match {
 	var newMatches []models.Match
 
 	for j, m := range matches {
@@ -94,7 +98,7 @@ func updateAll(player *models.Player, matches []utils.MatchData) []models.Match 
 				TimePlayed: match.Segments[0].Stats.TeamSurvivalTime.DisplayValue,
 				Placement:  match.Segments[0].Stats.Placement.Value,
 				DamageDone: int(match.Segments[0].Stats.DamageDone.Value),
-				Score:      utils.Scoreboard[match.Segments[0].Stats.Placement.Value],
+				Score:      Scoreboard[match.Segments[0].Stats.Placement.Value],
 			}
 
 			player.Matches = append(player.Matches, newMatch)

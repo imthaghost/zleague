@@ -6,12 +6,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"zleague/api/utils"
 )
 
 // GetMoreWarzoneMatches does
-func GetMoreWarzoneMatches(username string) ([]utils.MatchData, error) {
-	var allMatches []utils.MatchData
+func GetMoreWarzoneMatches(username string) ([]MatchData, error) {
+	var allMatches []MatchData
 
 	reqs := []string{"null", "1598805852999", "1598214721999", "1598113460999", "1597612561999", "1597528982999", "1596998692999"}
 	// base uri
@@ -26,7 +25,7 @@ func GetMoreWarzoneMatches(username string) ([]utils.MatchData, error) {
 		defer resp.Body.Close()
 		if resp.StatusCode == 200 {
 			body, err := ioutil.ReadAll(resp.Body)
-			var matchData utils.MatchData
+			var matchData MatchData
 			err = json.Unmarshal(body, &matchData)
 			if err != nil {
 				log.Fatal(err)
@@ -38,8 +37,8 @@ func GetMoreWarzoneMatches(username string) ([]utils.MatchData, error) {
 }
 
 // GetWarzoneMatches retrieves a list of all the players previous warzone matches
-func GetWarzoneMatches(username string) (utils.MatchData, error) {
-	var matchData utils.MatchData
+func GetWarzoneMatches(username string) (MatchData, error) {
+	var matchData MatchData
 
 	resp, err := http.Get(fmt.Sprintf("https://api.tracker.gg/api/v1/warzone/matches/atvi/%s?type=wz&next=null", username))
 	if err != nil {
@@ -68,8 +67,8 @@ func GetWarzoneMatches(username string) (utils.MatchData, error) {
 }
 
 // GetWarzoneStats retrieves the stats of an individual player in warzone
-func GetWarzoneStats(username string) (utils.StatData, error) {
-	var statData utils.StatData
+func GetWarzoneStats(username string) (StatData, error) {
+	var statData StatData
 	resp, err := http.Get(fmt.Sprintf("https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/%s", username))
 	if err != nil {
 		log.Fatal(err)
@@ -89,7 +88,7 @@ func GetWarzoneStats(username string) (utils.StatData, error) {
 }
 
 // CheckUser checks if a user with the username exists
-func CheckUser(user string) bool {
+func IsValid(user string) bool {
 	resp, err := http.Get(fmt.Sprintf("https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/%s", user))
 	if err != nil {
 		log.Fatal(err)

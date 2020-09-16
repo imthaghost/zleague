@@ -55,6 +55,18 @@ func (t *Tournament) UpdateInDB(db *mongo.Database) {
 	_ = coll.FindOneAndUpdate(context.TODO(), filter, update)
 }
 
-func (t *Tournament) GetTeams(db *mongo.Database) []models.Team {
+// GetTeams returns all teams from a single tournament
+func (t *Tournament) GetTeams(db *mongo.Database, id string) []models.Team {
+	// get tournaments collection and find single tournament
+	db.Collection("tournaments").FindOne(context.TODO(), bson.M{"id": id}).Decode(&t)
+	// return all teams from tournament
 	return t.Teams
+}
+
+// GetTournament returns a single tournament struct
+func (t *Tournament) GetTournament(db *mongo.Database, id string) Tournament {
+	// get tournaments collection and find single tournament
+	db.Collection("tournaments").FindOne(context.TODO(), bson.M{"id": id}).Decode(&t)
+	// return tournament
+	return *t
 }

@@ -4,7 +4,7 @@ import (
 	"zleague/api/db"
 	"zleague/api/tournament"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -27,7 +27,7 @@ func NewServer(database *mongo.Database) *Server {
 	return &Server{
 		e:       echo.New(), // new echo server to server the api
 		db:      database,   // mongo database to store stuff
-		manager: manager,    // tournament manager
+		manager: manager,    //lkajs;dlfkjas;dlfkjals;djfkalkasl;kjfa
 	}
 }
 

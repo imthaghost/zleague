@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   mongo:
     image: mongo
@@ -9,3 +9,15 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: AVeryStrongPassword1234
     ports:
       - 27017:27017
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    ports:
+      - 8080:8080
+    depends_on:
+      - mongo
+    links:
+      - mongo
+    volumes:
+      - ./:/go/src/zleague-api
