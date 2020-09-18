@@ -18,6 +18,7 @@ type Match struct {
 	Score      int
 }
 
+// ByScore is an array of matches that allows us to return them sorted
 type ByScore []Match
 
 func (a ByScore) Len() int           { return len(a) }
