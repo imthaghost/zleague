@@ -62,7 +62,7 @@ Reference: https://godoc.org/net/http#Transport
 */
 
 // newNetClient creates a  client
-func newNetClient() *http.Client {
+func NewNetClient() *http.Client {
 	once.Do(func() {
 		// transport configuratin
 		var netTransport = &http.Transport{

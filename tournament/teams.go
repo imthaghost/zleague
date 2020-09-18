@@ -3,6 +3,7 @@ package tournament
 import (
 	"sort"
 	"zleague/api/models"
+	"zleague/api/proxy"
 )
 
 // creates all the teams concurrently
@@ -116,12 +117,13 @@ func (t *Tournament) Update() {
 	updateChan := make(chan *models.Team, 1000)
 	player := make(chan *models.Player, 1000)
 	fin := make(chan bool, 1000)
+	client := proxy.NewNetClient() // sync http client
 
 	// instantiate 20 workers on each goroutine
 	// 20 is the max amount of workers before rate limiting from the API
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 50; i++ {
 		go updateWorker(teamChan, player)
-		go playerWorker(player, fin)
+		go playerWorker(player, client, fin)
 		go updateTeamStatsWorker(updateChan, fin)
 	}
 

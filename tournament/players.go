@@ -2,6 +2,7 @@ package tournament
 
 import (
 	"log"
+	"net/http"
 	"sort"
 	"time"
 	"zleague/api/cod"
@@ -49,11 +50,12 @@ func CreatePlayer(username, teamname string, startTime, endTime time.Time) model
 }
 
 // goroutine worker to update each individual player concurrently
-func playerWorker(playerChan chan *models.Player, fin chan bool) {
+func playerWorker(playerChan chan *models.Player, client *http.Client, fin chan bool) {
 	// checks the channel for players to update
 	for player := range playerChan {
 		// updates them and checks for errors
-		all, err := cod.GetWarzoneMatches(player.Username)
+		all, err := cod.GetMatchData(player.Username, client)
+		// all, err := cod.GetWarzoneMatches(player.Username)
 		if err != nil {
 			log.Println(all)
 		}
