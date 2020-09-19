@@ -31,7 +31,7 @@ by default each connection in that pool is
 reused if body is fully read and closed
 */
 
-// newProxy will returns a proxy function for use
+// newProxy will return a proxy function for use
 // in a transport that always returns the same URL
 func newProxy() func(*http.Request) (*url.URL, error) {
 	// get proxy config
@@ -57,6 +57,7 @@ Transport is the struct that holds connections for re-use;
 Creating new Transport for each request, will create new connections each time.
 In this case the solution is to share the one Transport instance between clients.
 By default, Transport caches connections for future re-use.
+
 Reference: https://godoc.org/net/http#Transport
 
 */

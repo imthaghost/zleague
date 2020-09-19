@@ -1,7 +1,6 @@
 package tournament
 
 import (
-	"fmt"
 	"zleague/api/cod"
 	"zleague/api/models"
 )
@@ -22,7 +21,6 @@ func updateStats(player *models.Player, matches cod.MatchData) {
 		} else if match.Attributes.ModeID != "br_brtrios" {
 			continue
 		}
-		fmt.Println(player.Username, match.Attributes.ID, "!=", player.LastMatch)
 
 		// create a new match structure and store the data from the API
 		newMatch := models.Match{

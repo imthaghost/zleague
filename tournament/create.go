@@ -2,32 +2,19 @@ package tournament
 
 import (
 	"encoding/csv"
+	"io"
 	"log"
-	"os"
 	"strings"
 	"time"
 )
 
 // Create a map of teams and players
-func Create(start, end time.Time) map[string]TeamBasic {
-	// get current working directory
-	path, err := os.Getwd()
-	if err != nil {
-		log.Println(err)
-	}
-	// file path
-	filePath := path + "/data/test.csv"
-	inputfile, err := os.Open(filePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer inputfile.Close()
+func Create(start, end time.Time, csvData io.Reader) map[string]TeamBasic {
 	// read file line by line
-	lines, err := csv.NewReader(inputfile).ReadAll()
+	lines, err := csv.NewReader(csvData).ReadAll()
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	// team map
 	teamMap := map[string]TeamBasic{}
 	// for each line in csv grab the division player id and teamname
