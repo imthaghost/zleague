@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"html"
-	"log"
 	"net/http"
 	"time"
 	"zleague/api/tournament"
@@ -10,21 +9,50 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// TournamentPayload represents the incoming payload to create a new tournament
+type TournamentPayload struct {
+	ID        string `json:"id" form:"id"`
+	Start     string `json:"start" form:"start"`
+	End       string `json:"end" form:"end"`
+	BestGames int    `json:"best_games" form:"best_games"`
+}
+
 // CreateTournament will start a new tournament.
 // TODO: Allow the ability to start and end tournaments at any time, as well as be able to set best x games :)
 func (h *Handler) CreateTournament(c echo.Context) (err error) {
-	start, err := time.Parse(time.RFC3339, "2020-09-11T01:50:00+00:00")
-	if err != nil {
-		log.Println("Line 15 NewTournament:", err)
-	}
-	end, err := time.Parse(time.RFC3339, "2020-09-11T4:50:00+00:00")
-	if err != nil {
-		log.Println("Line 20 NewTournament:", err)
-	}
-	// create a new tournament
-	h.manager.NewTournament(start, end, "123458")
+	tournamentPayload := TournamentPayload{}
 
-	return c.JSON(http.StatusOK, "check ur console hoe")
+	// csv file
+	csvFormFile, err := c.FormFile("csv")
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid CSV Uploaded")
+	}
+
+	// attempt bind tournament payload to our form struct
+	if err := c.Bind(&tournamentPayload); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Tournament Payload")
+	}
+
+	// parse the start time from the json payload
+	start, err := time.Parse(time.RFC3339, tournamentPayload.Start)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Start Time")
+	}
+	// parse the end time from the json payload
+	end, err := time.Parse(time.RFC3339, tournamentPayload.End)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid End Time")
+	}
+
+	csvData, err := csvFormFile.Open()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Error Opening CSV")
+	}
+
+	// create a new tournament
+	tournament := h.manager.NewTournament(start, end, tournamentPayload.ID, csvData)
+
+	return c.JSON(http.StatusOK, tournament)
 }
 
 // GetTournament will return a tournament that is in the database

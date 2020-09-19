@@ -1,19 +1,15 @@
 package tournament_test
 
 import (
-	"log"
 	"testing"
-	"time"
-	"zleague/api/tournament"
 )
 
 func TestCreateTournament(t *testing.T) {
 	// is := is.New(t)
-	start := time.Now()
-	// end time is 10 minutes after the start time
-	end := time.Now().Add(time.Minute * 10)
+	// start := time.Now()
+	// // end time is 10 minutes after the start time
+	// end := time.Now().Add(time.Minute * 10)
 
-	tourney := tournament.Create(start, end)
-
-	log.Println(tourney)
+	// tourney := tournament.Create(start, end)
+	// log.Println(tourney)
 }

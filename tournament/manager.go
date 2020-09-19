@@ -2,6 +2,7 @@ package tournament
 
 import (
 	"context"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -94,10 +95,10 @@ func (t *Manager) Start() {
 }
 
 // NewTournament is designed to create a new tournament, and then save it to the struct and the database and return it
-func (t *Manager) NewTournament(start, end time.Time, id string) Tournament {
+func (t *Manager) NewTournament(start, end time.Time, id string, csvData io.Reader) Tournament {
 	// create a new tournament
 	// TODO: Start the cron job for this tournament because it wont be started from the "start"
-	teams := Create(start, end)
+	teams := Create(start, end, csvData)
 	newTournament := NewTournament(teams, id, start, end)
 
 	err := newTournament.Insert(t.DB)
