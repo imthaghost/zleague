@@ -1,4 +1,4 @@
-spackage cod
+package cod
 
 import (
 	"encoding/json"
@@ -133,6 +133,11 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 		fmt.Println(retryErr)
 	}
 	return matchData, fmt.Errorf("GetMatchData: status code %d: %s", Code, username)
+}
+
+// GetStatsData
+func GetStatsData() {
+
 }
 
 // GetWarzoneStats retrieves the stats of an individual player in warzone
