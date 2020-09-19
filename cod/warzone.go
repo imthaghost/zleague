@@ -1,4 +1,4 @@
-package cod
+spackage cod
 
 import (
 	"encoding/json"
@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/avast/retry-go"
 )
@@ -139,7 +140,7 @@ func GetWarzoneStats(username string) (StatData, error) {
 	var statData StatData
 	resp, err := http.Get(fmt.Sprintf("https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/%s", username))
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Cannot connect to host: ", err)
 	}
 	defer resp.Body.Close()
 
@@ -148,8 +149,13 @@ func GetWarzoneStats(username string) (StatData, error) {
 
 		err = json.Unmarshal(body, &statData)
 		if err != nil {
-			log.Fatal(err)
+			log.Println("Cannot Unmarshal JSON: ", err)
 		}
+		// Fully consume the body, which will also lead to us reading
+		// the trailer headers after the body, if present.
+		io.Copy(ioutil.Discard, resp.Body)
+		// fully close
+		resp.Body.Close()
 		return statData, nil
 	}
 	return statData, fmt.Errorf("GetWarzoneStats: status code %d: %s", resp.StatusCode, username)
@@ -157,12 +163,12 @@ func GetWarzoneStats(username string) (StatData, error) {
 
 // IsValid checks if a user with the username exists
 func IsValid(user string) bool {
-	resp, err := http.Get(fmt.Sprintf("https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/%s", user))
+	resp, err := http.Get(strings.TrimSpace(fmt.Sprintf("https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/%s", user)))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if resp.StatusCode == 200 {
+	if resp.StatusCode == http.StatusOK {
 		return true
 	}
 	return false

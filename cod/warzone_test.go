@@ -7,18 +7,30 @@ import (
 	"github.com/matryer/is"
 )
 
-func TestValidUser(t *testing.T) {
+// TestIsValid checks returned values from IsValid function from cod package
+func TestIsValid(t *testing.T) {
+
 	is := is.New(t)
-	username := "Temporis%231318655"
 
-	valid := cod.IsValid(username)
-	is.Equal(valid, true)
-}
-
-func TestInvalidUser(t *testing.T) {
-	is := is.New(t)
-	username := "Temporis%2312345"
-
-	valid := cod.IsValid(username)
-	is.Equal(valid, false)
+	// table of invalid and or valid users
+	var userTable = []struct {
+		username string
+		expected bool
+	}{
+		{"Temporis%231318655", true},
+		{"onesicksikh%231221896", true},
+		{"ghost%232891963", true},
+		{"fehyifue8", false},
+		{"%23", false},
+		{"\n", false},
+		{"Temporis#1318655", false},
+		{"ghost#2891963", false},
+		{"onesicksikh#1221896", false},
+	}
+	// each user in table
+	for _, user := range userTable {
+		result := cod.IsValid(user.username)
+		expected := user.expected
+		is.Equal(result, expected)
+	}
 }
