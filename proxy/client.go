@@ -20,7 +20,7 @@ We limit the maximum number of connections per host.
 */
 var (
 	MaxIdleConnections = 10         // Max Idle Connections
-	once               sync.Once    // sync
+	once               sync.Once    // sync so we only setup 1 client
 	netClient          *http.Client // client
 )
 
@@ -34,20 +34,20 @@ reused if body is fully read and closed
 // newProxy will returns a proxy function for use
 // in a transport that always returns the same URL
 func newProxy() func(*http.Request) (*url.URL, error) {
-	// credentials from config file
+	// get proxy config
 	c := config.GetProxyConfig()
-	// base url
-	base := "%s://%s:%s@%s"
+
+	base := "http://%s:%s@%s"
 	// fill credentials into url
-	proxyURL := fmt.Sprintf(base, c.Schema, c.Username, c.Password, c.Address)
+	proxyURL := fmt.Sprintf(base, c.Username, c.Password, c.Address)
 	// parse proxy url
 	link, err := url.Parse(proxyURL)
 	if err != nil {
 		fmt.Println(err)
 	}
-	// proxy function
+	// setup proxy transport
 	proxy := http.ProxyURL(link)
-	// proxy
+
 	return proxy
 }
 
@@ -61,7 +61,7 @@ Reference: https://godoc.org/net/http#Transport
 
 */
 
-// newNetClient creates a  client
+// NewNetClient creates a new client
 func NewNetClient() *http.Client {
 	once.Do(func() {
 		// transport configuratin
@@ -78,6 +78,6 @@ func NewNetClient() *http.Client {
 			Transport: netTransport,     // how our HTTP requests are made
 		}
 	})
-	// client
+
 	return netClient
 }

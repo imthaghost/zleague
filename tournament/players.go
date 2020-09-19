@@ -55,9 +55,8 @@ func playerWorker(playerChan chan *models.Player, client *http.Client, fin chan 
 	for player := range playerChan {
 		// updates them and checks for errors
 		all, err := cod.GetMatchData(player.Username, client)
-		// all, err := cod.GetWarzoneMatches(player.Username)
 		if err != nil {
-			log.Println(all)
+			log.Println(err)
 		}
 
 		// add the matches from the updateStats function to the player

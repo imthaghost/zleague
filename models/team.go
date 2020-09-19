@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Team does
+// Team represents a single team in the tournament
 type Team struct {
 	Teamname        string
 	Division        string
@@ -36,7 +36,7 @@ type Team struct {
 	}
 }
 
-// BasicTeam does
+// BasicTeam is a cleaned up version to a team
 type BasicTeam struct {
 	Teamname        string `json:"teamname"`
 	Wins            int    `json:"wins"`
@@ -46,7 +46,7 @@ type BasicTeam struct {
 	PlacementPoints int    `json:"placementpoints"`
 }
 
-// ByPoints does
+// ByPoints allows us to sort all the teams
 type ByPoints []Team
 
 func (a ByPoints) Len() int           { return len(a) }
@@ -55,12 +55,13 @@ func (a ByPoints) Less(i, j int) bool { return a[i].TotalPoints > a[j].TotalPoin
 
 // FindTeam finds a team with the matching team name
 func (t *Team) FindTeam(db *mongo.Database, teamName string) (Team, error) {
-
 	coll := db.Collection("teams")
 
+	// find a team based off of their name
 	err := coll.FindOne(context.TODO(), bson.D{primitive.E{Key: "teamname", Value: teamName}}).Decode(&t)
 	if err != nil {
 		return Team{}, err
 	}
+
 	return *t, nil
 }

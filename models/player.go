@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-// Player does
+// Player represents a single player in the tournament
 type Player struct {
 	TournamentStartTime time.Time
 	TournamentEndTime   time.Time

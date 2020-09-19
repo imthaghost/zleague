@@ -2,7 +2,6 @@ package cod
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -13,7 +12,8 @@ import (
 	"github.com/avast/retry-go"
 )
 
-// GetMoreWarzoneMatches does
+// GetMoreWarzoneMatches returns 140 matches
+// TODO: use this somewhere or delete u frickin pepegas
 func GetMoreWarzoneMatches(username string) ([]MatchData, error) {
 	var allMatches []MatchData
 
@@ -41,37 +41,7 @@ func GetMoreWarzoneMatches(username string) ([]MatchData, error) {
 	return allMatches, nil
 }
 
-// GetWarzoneMatches retrieves a list of all the players previous warzone matches
-func GetWarzoneMatches(username string) (MatchData, error) {
-	var matchData MatchData
-
-	resp, err := http.Get(fmt.Sprintf("https://api.tracker.gg/api/v1/warzone/matches/atvi/%s?type=wz&next=null", username))
-	if err != nil {
-		log.Println(err)
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode == 200 {
-		body, err := ioutil.ReadAll(resp.Body)
-
-		err = json.Unmarshal(body, &matchData)
-		if err != nil {
-			log.Println(err)
-		}
-		return matchData, nil
-	} else if resp.StatusCode == 500 {
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Println(err)
-		}
-		fmt.Println(string(body))
-	}
-
-	return matchData, fmt.Errorf("GetWarzoneMatches: status code %d: %s", resp.StatusCode, username)
-}
-
-// GetMatchData
+// GetMatchData will return the data about a match for a given user
 func GetMatchData(username string, client *http.Client) (MatchData, error) {
 	var matchData MatchData
 	var Code int
@@ -115,7 +85,7 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 				// close
 				resp.Body.Close()
 				// return custom error
-				err := errors.New(fmt.Sprintf("Respone code: %d", s))
+				err := fmt.Errorf("Respone code: %d", s)
 				return err
 				// resp - 200 OK
 			} else if s == http.StatusOK {
@@ -148,11 +118,11 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 				// close
 				resp.Body.Close()
 				// return custom error
-				err := errors.New(fmt.Sprintf("NOT FOUND Respone code: %d", s))
+				err := fmt.Errorf("NOT FOUND Respone code: %d", s)
 				return err
 			} else {
 				Code = s
-				err := errors.New(fmt.Sprintf("This was not handled: %d", s))
+				err := fmt.Errorf("This was not handled: %d", s)
 				return err
 			}
 		},
@@ -161,7 +131,7 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 	if retryErr != nil {
 		fmt.Println(retryErr)
 	}
-	return matchData, fmt.Errorf("GetWarzoneMatches: status code %d: %s", Code, username)
+	return matchData, fmt.Errorf("GetMatchData: status code %d: %s", Code, username)
 }
 
 // GetWarzoneStats retrieves the stats of an individual player in warzone
@@ -185,13 +155,13 @@ func GetWarzoneStats(username string) (StatData, error) {
 	return statData, fmt.Errorf("GetWarzoneStats: status code %d: %s", resp.StatusCode, username)
 }
 
-// CheckUser checks if a user with the username exists
+// IsValid checks if a user with the username exists
 func IsValid(user string) bool {
 	resp, err := http.Get(fmt.Sprintf("https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/%s", user))
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(resp.StatusCode)
+
 	if resp.StatusCode == 200 {
 		return true
 	}

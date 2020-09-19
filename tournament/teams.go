@@ -6,6 +6,50 @@ import (
 	"zleague/api/proxy"
 )
 
+// Update the teams and all of the players on the team. Will be called every 10 minutes.
+func (t *Tournament) Update() {
+	// instantiate 4 channels to use to pass the teams through,
+	// one for the starting teams, updated teams, players and one finalize channel
+	teamChan := make(chan *models.Team, 1000)
+	updateChan := make(chan *models.Team, 1000)
+	player := make(chan *models.Player, 1000)
+	fin := make(chan bool, 1000)
+	client := proxy.NewNetClient() // sync http client
+
+	// instantiate 20 workers on each goroutine
+	// 20 is the max amount of workers before rate limiting from the API
+	for i := 0; i < 30; i++ {
+		go updateWorker(teamChan, player)
+		go playerWorker(player, client, fin)
+		go updateTeamStatsWorker(updateChan, fin)
+	}
+
+	//  for each team in the tournament, pass them through the channel
+	for i := range t.Teams {
+		teamChan <- &t.Teams[i]
+	}
+
+	// unload the finalize channel to know when the first channel finishes
+	// iterate for the total number of players in the tournament
+	for i := 0; i < (len(t.Teams) * 3); i++ {
+		<-fin
+	}
+
+	// go through the teams again and pass them through the update channel
+	// must be done after the finalize to make sure that the teams have been completely updated
+	for i := range t.Teams {
+		updateChan <- &t.Teams[i]
+	}
+
+	// unload the finalize channel one last time.
+	// iterate for the total number of teams in the tournament
+	for i := 0; i < len(t.Teams); i++ {
+		<-fin
+	}
+	// Sort the teams by the number of points they have
+	sort.Sort(models.ByPoints(t.Teams))
+}
+
 // creates all the teams concurrently
 func createTeams(t map[string]TeamBasic) []models.Team {
 	var allTeams []models.Team
@@ -107,50 +151,6 @@ func updateTeam(team *models.Team) *models.Team {
 	team.Total.TotalScore += team.Total.TotalKills
 
 	return team
-}
-
-// Update the teams and all of the players on the team.
-func (t *Tournament) Update() {
-	// instantiate 4 channels to use to pass the teams through,
-	// one for the starting teams, updated teams, players and one finalize channel
-	teamChan := make(chan *models.Team, 1000)
-	updateChan := make(chan *models.Team, 1000)
-	player := make(chan *models.Player, 1000)
-	fin := make(chan bool, 1000)
-	client := proxy.NewNetClient() // sync http client
-
-	// instantiate 20 workers on each goroutine
-	// 20 is the max amount of workers before rate limiting from the API
-	for i := 0; i < 50; i++ {
-		go updateWorker(teamChan, player)
-		go playerWorker(player, client, fin)
-		go updateTeamStatsWorker(updateChan, fin)
-	}
-
-	//  for each team in the tournament, pass them through the channel
-	for i := range t.Teams {
-		teamChan <- &t.Teams[i]
-	}
-
-	// unload the finalize channel to know when the first channel finishes
-	// iterate for the total number of players in the tournament
-	for i := 0; i < (len(t.Teams) * 3); i++ {
-		<-fin
-	}
-
-	// go through the teams again and pass them through the update channel
-	// must be done after the finalize to make sure that the teams have been completely updated
-	for i := range t.Teams {
-		updateChan <- &t.Teams[i]
-	}
-
-	// unload the finalize channel one last time.
-	// iterate for the total number of teams in the tournament
-	for i := 0; i < len(t.Teams); i++ {
-		<-fin
-	}
-	// Sort the teams by the number of points they have
-	sort.Sort(models.ByPoints(t.Teams))
 }
 
 // updateWorker goroutine handles updating all of the players on the team

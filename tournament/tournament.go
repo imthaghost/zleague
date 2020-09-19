@@ -15,5 +15,3 @@ func NewTournament(t map[string]TeamBasic, id string, startTime, endTime time.Ti
 		Teams:     teams,
 	}
 }
-
-

@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-	"zleague/api/db"
 
 	"github.com/robfig/cron"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,20 +12,20 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// TournamentManager is designed to manage multiple tournaments at once.
+// Manager is designed to manage multiple tournaments at once.
 // It does this through a database, where it stores current tournaments and information about them.
 // You can create new tournaments, delete tournaments, and more.
-type TournamentManager struct {
+type Manager struct {
 	Tournaments map[string]Tournament // represents all current tournaments
 	client      http.Client
 	cron        *cron.Cron
 	DB          *mongo.Database
 }
 
-// NewTournamentManager will create a new instance of tournament manager.
+// NewManager will create a new instance of tournament manager.
 // By default, it will load tournaments that are currently in the database so that they can be interacted with.
-func NewTournamentManager(db *mongo.Database) *TournamentManager {
-	m := &TournamentManager{
+func NewManager(db *mongo.Database) *Manager {
+	m := &Manager{
 		Tournaments: map[string]Tournament{},
 		DB:          db,
 	}
@@ -54,19 +53,25 @@ func NewTournamentManager(db *mongo.Database) *TournamentManager {
 	return m
 }
 
-func (t *TournamentManager) Start() {
-	// START CRONS
+// Start will start a new tournament
+func (t *Manager) Start() {
 	// default to every 10 minutes
 	schedule := "@every 1m"
 	// create new cron instance
 	c := cron.New()
 
 	// start a new loop for every tournament
-	log.Println("Starting cron:")
+	log.Println("Cron Starting")
 	for id, tournament := range t.Tournaments {
 		log.Println("Starting Update loop for tournament id: ", id)
 		// call function every 10 minutes
 		c.AddFunc(schedule, func() {
+			// if time is before the time of the tournament, do nothing
+			if time.Now().Before(tournament.StartTime) {
+				log.Println("Tournament has not started yet... not updating..")
+				return
+			}
+
 			// log.Println("Current time " + time.Now().Format(time.RFC3339))
 			// // we stop the cron job 30 minutes after the tournament endtime
 			// if time.Now().After(tournament.EndTime.Add(time.Minute * time.Duration(30))) {
@@ -76,9 +81,8 @@ func (t *TournamentManager) Start() {
 			// }
 
 			// Update all the teams
-			log.Println("updating due to start")
 			tournament.Update()
-			tournament.UpdateInDB(db.Connect())
+			tournament.UpdateInDB(t.DB)
 		})
 	}
 
@@ -90,13 +94,13 @@ func (t *TournamentManager) Start() {
 }
 
 // NewTournament is designed to create a new tournament, and then save it to the struct and the database and return it
-func (t *TournamentManager) NewTournament(db *mongo.Database, start, end time.Time, id string) Tournament {
+func (t *Manager) NewTournament(start, end time.Time, id string) Tournament {
 	// create a new tournament
 	// TODO: Start the cron job for this tournament because it wont be started from the "start"
 	teams := Create(start, end)
 	newTournament := NewTournament(teams, id, start, end)
 
-	err := newTournament.Insert(db)
+	err := newTournament.Insert(t.DB)
 	if err != nil {
 		log.Println("manager: error creating new tournament in db: ", err)
 	}
@@ -112,11 +116,15 @@ func (t *TournamentManager) NewTournament(db *mongo.Database, start, end time.Ti
 		//     log.Println("stopping cron")
 		//     c.Stop()
 		// }
-
+		// if time is before the time of the tournament, do nothing
+		if time.Now().Before(newTournament.StartTime) {
+			log.Println("Tournament has not started yet... not updating...")
+			return
+		}
 		// Update all the teams
 		log.Println("updating due to create")
 		newTournament.Update()
-		newTournament.UpdateInDB(db)
+		newTournament.UpdateInDB(t.DB)
 	})
 
 	return newTournament
@@ -125,7 +133,7 @@ func (t *TournamentManager) NewTournament(db *mongo.Database, start, end time.Ti
 // GetTournament will get a tournament from memory or w/e
 // GET /tournament/:id
 // GET /tournament/:id/teams/:id
-func (t *TournamentManager) GetTournament(db *mongo.Database, id string) Tournament {
+func (t *Manager) GetTournament(db *mongo.Database, id string) Tournament {
 	// TODO: check to see if tournament is im memory before pulling from the db (or just update the map)
 	var tournament Tournament
 	coll := db.Collection("tournaments")
@@ -142,7 +150,8 @@ func (t *TournamentManager) GetTournament(db *mongo.Database, id string) Tournam
 	return tournament
 }
 
-func (t *TournamentManager) AllTournaments() []Tournament {
+// AllTournaments will return all current active tournaments
+func (t *Manager) AllTournaments() []Tournament {
 	// TODO: logic
 	return []Tournament{}
 }
