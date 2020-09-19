@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// Server is a wrapper around our core
 type Server struct {
 	e       *echo.Echo
 	db      *mongo.Database
@@ -31,6 +32,16 @@ func NewServer(database *mongo.Database) *Server {
 	}
 }
 
+// GetDB will return the database connection
+func (s *Server) GetDB() *mongo.Database {
+	return s.db
+}
+
+// GetManager will return the tournament manager that is on the server
+func (s *Server) GetManager() *tournament.TournamentManager {
+	return s.manager
+}
+
 // Start will start the server instance
 func (s *Server) Start(port string) {
 	// default port 8080
@@ -44,6 +55,7 @@ func (s *Server) Start(port string) {
 	s.e.Logger.Fatal(s.e.Start(port))
 }
 
+// Stop will stop the server
 func (s *Server) Stop() {
 	// stop the server
 	s.e.Close()

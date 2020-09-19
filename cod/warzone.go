@@ -2,10 +2,15 @@ package cod
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
+
+	"github.com/avast/retry-go"
 )
 
 // GetMoreWarzoneMatches does
@@ -42,7 +47,7 @@ func GetWarzoneMatches(username string) (MatchData, error) {
 
 	resp, err := http.Get(fmt.Sprintf("https://api.tracker.gg/api/v1/warzone/matches/atvi/%s?type=wz&next=null", username))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	defer resp.Body.Close()
@@ -52,7 +57,7 @@ func GetWarzoneMatches(username string) (MatchData, error) {
 
 		err = json.Unmarshal(body, &matchData)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		return matchData, nil
 	} else if resp.StatusCode == 500 {
@@ -64,6 +69,99 @@ func GetWarzoneMatches(username string) (MatchData, error) {
 	}
 
 	return matchData, fmt.Errorf("GetWarzoneMatches: status code %d: %s", resp.StatusCode, username)
+}
+
+// GetMatchData
+func GetMatchData(username string, client *http.Client) (MatchData, error) {
+	var matchData MatchData
+	var Code int
+	// url
+	rawURL := "https://api.tracker.gg/api/v1/warzone/matches/atvi/%s?type=wz&next=null"
+	// api url
+	url, err := url.Parse(fmt.Sprintf(rawURL, username))
+	// invalid url
+	if err != nil {
+		fmt.Println("Unable to parse url")
+	}
+	// build http request
+	retryErr := retry.Do(
+		func() error {
+			req, err := http.NewRequest(
+				http.MethodGet,
+				url.String(),
+				nil,
+			)
+			if err != nil {
+				return err
+			}
+			// set a normal/non-hackerman user agent
+			req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Safari/537.36")
+			// just to see if their server is checking remote ip ;)
+			req.Header.Set("X-Remote-IP", "127.0.0.1")
+			// default client
+			resp, err := client.Do(req)
+			if err != nil {
+				return err
+			}
+			// read response status code
+			s := resp.StatusCode
+			// resp - 500
+			if s >= 500 {
+				// assign current status code
+				Code = s
+				// Fully consume the body, which will also lead to us reading
+				// the trailer headers after the body, if present.
+				io.Copy(ioutil.Discard, resp.Body)
+				// close
+				resp.Body.Close()
+				// return custom error
+				err := errors.New(fmt.Sprintf("Respone code: %d", s))
+				return err
+				// resp - 200 OK
+			} else if s == http.StatusOK {
+				// assign current status code
+				Code = s
+				// read body
+				body, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					return err
+				}
+				// unmarshal json into match data struct
+				err = json.Unmarshal(body, &matchData)
+				if err != nil {
+					return err
+				}
+				// Fully consume the body, which will also lead to us reading
+				// the trailer headers after the body, if present.
+				io.Copy(ioutil.Discard, resp.Body)
+				// fully close
+				resp.Body.Close()
+				// no error
+				return nil
+				// resp - 404 - NOT FOUND
+			} else if s == 404 {
+				// assign current status code
+				Code = s
+				// Fully consume the body, which will also lead to us reading
+				// the trailer headers after the body, if present.
+				io.Copy(ioutil.Discard, resp.Body)
+				// close
+				resp.Body.Close()
+				// return custom error
+				err := errors.New(fmt.Sprintf("NOT FOUND Respone code: %d", s))
+				return err
+			} else {
+				Code = s
+				err := errors.New(fmt.Sprintf("This was not handled: %d", s))
+				return err
+			}
+		},
+	)
+	// hope fully never gets called
+	if retryErr != nil {
+		fmt.Println(retryErr)
+	}
+	return matchData, fmt.Errorf("GetWarzoneMatches: status code %d: %s", Code, username)
 }
 
 // GetWarzoneStats retrieves the stats of an individual player in warzone

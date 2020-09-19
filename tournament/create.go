@@ -16,7 +16,7 @@ func Create(start, end time.Time) map[string]TeamBasic {
 		log.Println(err)
 	}
 	// file path
-	filepath := path + "data/test.csv"
+	filepath := path + "/data/test.csv"
 	inputfile, err := os.Open(filepath)
 	if err != nil {
 		log.Fatal(err)
