@@ -139,7 +139,11 @@ func updateTeam(team *models.Team) *models.Team {
 		team.Deaths += player.Deaths
 		team.Assists += player.Assists
 		team.Headshots += player.Headshots
-		team.KD = (float64(team.Kills) / float64(team.Deaths))
+		if team.Deaths == 0 {
+			team.KD = float64(team.Kills)
+		} else {
+			team.KD = (float64(team.Kills) / float64(team.Deaths))
+		}
 		team.DamageDone += player.DamageDone
 		team.Wins = player.Wins
 		team.TotalPoints = player.PlacementPoints
@@ -149,7 +153,11 @@ func updateTeam(team *models.Team) *models.Team {
 		team.Total.TotalDeaths += player.Total.TotalDeaths
 		team.Total.TotalAssists += player.Total.TotalAssists
 		team.Total.TotalHeadshots += player.Total.TotalHeadshots
-		team.Total.TotalKD = (float64(team.Total.TotalKills) / float64(team.Total.TotalDeaths))
+		if team.Total.TotalDeaths == 0 {
+			team.Total.TotalKD = float64(team.Total.TotalKills)
+		} else {
+			team.Total.TotalKD = (float64(team.Total.TotalKills) / float64(team.Total.TotalDeaths))
+		}
 		team.Total.TotalDamage += player.Total.TotalDamage
 		team.Total.TotalWins = player.Total.TotalWins
 		team.Total.TotalScore = player.Total.TotalScore
