@@ -31,11 +31,16 @@ func GetMoreWarzoneMatches(username string) ([]MatchData, error) {
 		defer resp.Body.Close()
 		if resp.StatusCode == 200 {
 			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return []MatchData{}, err
+			}
+
 			var matchData MatchData
 			err = json.Unmarshal(body, &matchData)
 			if err != nil {
-				log.Fatal(err)
+				return []MatchData{}, err
 			}
+
 			allMatches = append(allMatches, matchData)
 		}
 	}
@@ -82,7 +87,10 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 				Code = s
 				// Fully consume the body, which will also lead to us reading
 				// the trailer headers after the body, if present.
-				io.Copy(ioutil.Discard, resp.Body)
+				_, err = io.Copy(ioutil.Discard, resp.Body)
+				if err != nil {
+					return err
+				}
 				// close
 				resp.Body.Close()
 				// return custom error
@@ -104,7 +112,10 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 				}
 				// Fully consume the body, which will also lead to us reading
 				// the trailer headers after the body, if present.
-				io.Copy(ioutil.Discard, resp.Body)
+				_, err = io.Copy(ioutil.Discard, resp.Body)
+				if err != nil {
+					return err
+				}
 				// fully close
 				resp.Body.Close()
 				// no error
@@ -115,7 +126,10 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 				Code = s
 				// Fully consume the body, which will also lead to us reading
 				// the trailer headers after the body, if present.
-				io.Copy(ioutil.Discard, resp.Body)
+				_, err = io.Copy(ioutil.Discard, resp.Body)
+				if err != nil {
+					return err
+				}
 				// close
 				resp.Body.Close()
 				// return custom error
@@ -176,7 +190,10 @@ func GetStatData(username string, client *http.Client) (StatData, error) {
 				Code = s
 				// Fully consume the body, which will also lead to us reading
 				// the trailer headers after the body, if present.
-				io.Copy(ioutil.Discard, resp.Body)
+				_, err = io.Copy(ioutil.Discard, resp.Body)
+				if err != nil {
+					return err
+				}
 				// close
 				resp.Body.Close()
 				// return custom error
@@ -198,7 +215,10 @@ func GetStatData(username string, client *http.Client) (StatData, error) {
 				}
 				// Fully consume the body, which will also lead to us reading
 				// the trailer headers after the body, if present.
-				io.Copy(ioutil.Discard, resp.Body)
+				_, err = io.Copy(ioutil.Discard, resp.Body)
+				if err != nil {
+					return err
+				}
 				// manually close body
 				resp.Body.Close()
 				return nil
@@ -208,7 +228,10 @@ func GetStatData(username string, client *http.Client) (StatData, error) {
 				Code = s
 				// Fully consume the body, which will also lead to us reading
 				// the trailer headers after the body, if present.
-				io.Copy(ioutil.Discard, resp.Body)
+				_, err = io.Copy(ioutil.Discard, resp.Body)
+				if err != nil {
+					return err
+				}
 				// manually close body
 				resp.Body.Close()
 				err := fmt.Errorf("NOT FOUND Respone code: %d", s)
@@ -222,6 +245,7 @@ func GetStatData(username string, client *http.Client) (StatData, error) {
 	)
 	// hope fully never gets called
 	if retryErr != nil {
+		fmt.Println(Code)
 		fmt.Println(retryErr)
 	}
 	return statData, nil
@@ -238,14 +262,22 @@ func GetWarzoneStats(username string) (StatData, error) {
 
 	if resp.StatusCode == 200 {
 		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Println("getwarzonestats: can not read response body. err: ", err)
+			return StatData{}, err
+		}
 
 		err = json.Unmarshal(body, &statData)
 		if err != nil {
-			log.Println("Cannot Unmarshal JSON: ", err)
+			log.Println("failed to unmarshal json. err: ", err)
+			return StatData{}, err
 		}
 		// Fully consume the body, which will also lead to us reading
 		// the trailer headers after the body, if present.
-		io.Copy(ioutil.Discard, resp.Body)
+		_, err = io.Copy(ioutil.Discard, resp.Body)
+		if err != nil {
+			return StatData{}, err
+		}
 		// fully close
 		resp.Body.Close()
 		return statData, nil

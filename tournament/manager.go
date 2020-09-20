@@ -2,15 +2,14 @@ package tournament
 
 import (
 	"context"
+	"errors"
 	"io"
 	"log"
-	"net/http"
 	"time"
 
 	cmap "github.com/orcaman/concurrent-map"
 	"github.com/robfig/cron"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -18,9 +17,7 @@ import (
 // It does this through a database, where it stores current tournaments and information about them.
 // You can create new tournaments, delete tournaments, and more.
 type Manager struct {
-	// Tournaments map[string]Tournament // represents all current tournaments
 	Tournaments cmap.ConcurrentMap
-	client      http.Client
 	cron        *cron.Cron
 	DB          *mongo.Database
 }
@@ -78,7 +75,10 @@ func (t *Manager) Start() {
 		log.Println("Starting Update Loop. Tournament ID: ", id)
 		tournament := tourney.(Tournament)
 		// start updating every x scheduled minutes
-		c.AddFunc(schedule, updateLoop(t.DB, &tournament, t))
+		err := c.AddFunc(schedule, updateLoop(t.DB, &tournament, t))
+		if err != nil {
+			log.Printf("Error adding update loop on start. ID: %s", tournament.ID)
+		}
 	}
 
 	// start the jobs
@@ -104,7 +104,10 @@ func (t *Manager) NewTournament(start, end time.Time, id string, csvData io.Read
 
 	schedule := "@every 1m"
 	// start updating every x scheduled minutes for the new tournament
-	t.cron.AddFunc(schedule, updateLoop(t.DB, &newTournament, t))
+	err = t.cron.AddFunc(schedule, updateLoop(t.DB, &newTournament, t))
+	if err != nil {
+		log.Printf("Error adding update loop on start. ID: %s", newTournament.ID)
+	}
 
 	return newTournament
 }
@@ -134,34 +137,30 @@ func updateLoop(db *mongo.Database, t *Tournament, m *Manager) func() {
 
 		// TODO: Update the tournament manager in memory with the updated tournament?
 		tourney := Tournament{}
-		tournament := tourney.GetTournament(db, t.ID)
+		tournament, err := tourney.GetTournament(db, t.ID)
+		if err != nil {
+			log.Println("manager: error getting tournament: ")
+		}
 		// update the tournament manager hashmap at once
 		m.Tournaments.Set(t.ID, tournament)
 	}
 }
 
-// GetTournament will get a tournament from memory or w/e
+// GetTournament will get a tournament from memory
 // GET /tournament/:id
 // GET /tournament/:id/teams/:id
-func (t *Manager) GetTournament(db *mongo.Database, id string) Tournament {
-	// TODO: check to see if tournament is im memory before pulling from the db (or just update the map)
-	var tournament Tournament
-	coll := db.Collection("tournaments")
-
-	err := coll.FindOne(context.TODO(), bson.D{primitive.E{Key: "id", Value: id}}).Decode(&tournament)
-
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return tournament
-		}
-		log.Println("manager: error getting tournament: ", err)
+func (t *Manager) GetTournament(db *mongo.Database, id string) (Tournament, error) {
+	tourney, exists := t.Tournaments.Get(id)
+	if !exists {
+		return Tournament{}, errors.New("manager: tournament does not exist")
 	}
 
-	return tournament
+	// convert the interface to a tournament structure
+	return tourney.(Tournament), nil
 }
 
 // AllTournaments will return all current active tournaments
-func (t *Manager) AllTournaments() []Tournament {
+func (t *Manager) AllTournaments() ([]Tournament, error) {
 	// TODO: logic
-	return []Tournament{}
+	return []Tournament{}, nil
 }

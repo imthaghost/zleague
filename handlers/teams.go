@@ -16,7 +16,10 @@ func (h *Handler) GetTeams(c echo.Context) error {
 	m := tournament.Tournament{}
 
 	// get teams in the tournament
-	teams := m.GetTeams(h.db, tournamentID)
+	teams, err := m.GetTeams(h.db, tournamentID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "team not found or error occured when finding team")
+	}
 
 	return c.JSON(http.StatusOK, teams)
 }
