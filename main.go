@@ -21,6 +21,7 @@ for s := range channel {
 
 func main() {
 	// start the server
+<<<<<<< HEAD
 	// server := server.NewServer(nil)
 	// server.Start(":8080")
 	urlchan := make(string chan)
@@ -34,4 +35,8 @@ func main() {
 		}
 		fmt.Println(resp.StatusCode)
 	}
+=======
+	server := server.New(nil)
+	server.Start(":8080")
+>>>>>>> f8e94d418434f363855c680f0872e55bd3bf5262
 }
