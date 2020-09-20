@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"html"
 	"net/http"
 	"time"
@@ -62,7 +61,6 @@ func (h *Handler) GetTournament(c echo.Context) error {
 
 	// get the tournament (uses the cache)
 	t, err := h.manager.GetTournament(id)
-	fmt.Println("tournament", t)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Tournament with that ID was not found.")
 	}

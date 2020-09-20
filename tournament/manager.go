@@ -57,7 +57,6 @@ func NewManager(db *mongo.Database) *Manager {
 
 		// add the tournament to the map
 		m.Tournaments.Set(tournament.ID, tournament)
-		// m.Tournaments[tournament.ID] = tournament
 	}
 
 	return m
