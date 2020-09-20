@@ -3,7 +3,7 @@ package server
 import (
 	"crypto/subtle"
 	"errors"
-	"os"
+	"zleague/api/config"
 	"zleague/api/handlers"
 
 	"github.com/labstack/echo/v4"
@@ -39,8 +39,9 @@ func (s *Server) Routes() {
 	// protected routes are protected by basic auth and mostly used for admin stuff if shit hits the fan
 	protected := s.e.Group("/protected")
 	protected.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
-		if subtle.ConstantTimeCompare([]byte(username), []byte(os.Getenv("SERVER_USERNAME"))) == 1 &&
-			subtle.ConstantTimeCompare([]byte(password), []byte(os.Getenv("SERVER_PASSWORD"))) == 1 {
+		config := config.GetAuthConfig()
+		if subtle.ConstantTimeCompare([]byte(username), []byte(config.Username)) == 1 &&
+			subtle.ConstantTimeCompare([]byte(password), []byte(config.Password)) == 1 {
 			return true, nil
 		}
 
@@ -49,7 +50,7 @@ func (s *Server) Routes() {
 	// create a new tournament (protected)
 	protected.POST("/tournament", r.CreateTournament)
 
-	// Update a tournament
+	// Update a tournament (protected)
 
-	// Update Team Data
+	// Update Team Data (protected)
 }

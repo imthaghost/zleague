@@ -19,11 +19,11 @@ type Tournament struct {
 
 // TeamBasic holds a simple struct of what a team consists of.
 type TeamBasic struct {
-	Teamname  string
-	Teammates []string
-	Start     time.Time
-	End       time.Time
-	Division  string
+	Teamname  string    `json:"team_name"`
+	Teammates []string  `json:"teammates"`
+	Start     time.Time `json:"start_time"`
+	End       time.Time `json:"end_time"`
+	Division  string    `json:"division"`
 }
 
 // Insert will add a new tournament to the database
@@ -34,6 +34,7 @@ func (t *Tournament) Insert(db *mongo.Database) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

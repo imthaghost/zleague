@@ -13,6 +13,9 @@ var (
 
 // TestMain is the entrypoint into our model tests
 func TestMain(m *testing.M) {
+	// do setup here
 	s = tests.SetupTestServer()
-	os.Exit(m.Run())
+	code := m.Run()
+	// do teardown here
+	os.Exit(code)
 }

@@ -10,7 +10,7 @@ import (
 
 // Team represents a single team in the tournament
 type Team struct {
-	Teamname        string   `json:"teamname"`
+	Teamname        string   `json:"team_name"`
 	Division        string   `json:"division"`
 	Kills           int      `json:"kills"`
 	Deaths          int      `json:"deaths"`
@@ -38,12 +38,12 @@ type Team struct {
 
 // BasicTeam is a cleaned up version to a team
 type BasicTeam struct {
-	Teamname        string `json:"teamname"`
+	Teamname        string `json:"team_name"`
 	Wins            int    `json:"wins"`
 	Kills           int    `json:"kills"`
-	GamesPlayed     int    `json:"gamesplayed"`
-	TotalPoints     int    `json:"totalpoints"`
-	PlacementPoints int    `json:"placementpoints"`
+	GamesPlayed     int    `json:"games_played"`
+	TotalPoints     int    `json:"total_points"`
+	PlacementPoints int    `json:"placement_points"`
 }
 
 // ByPoints allows us to sort all the teams

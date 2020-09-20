@@ -36,7 +36,7 @@ func NewManager(db *mongo.Database) *Manager {
 	}
 
 	// setup context
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	// in here, we want to load the tournaments that already exist
 	cursor, err := db.Collection("tournaments").Find(context.TODO(), bson.D{})
@@ -64,8 +64,8 @@ func NewManager(db *mongo.Database) *Manager {
 
 // Start will start a new tournament
 func (t *Manager) Start() {
-	// default to every 10 minutes
-	schedule := "@every 1m"
+	// default to every 7 minutes
+	schedule := "@every 7m"
 	// create new cron instance for all our update loops
 	c := cron.New()
 
@@ -102,7 +102,7 @@ func (t *Manager) NewTournament(start, end time.Time, id string, csvData io.Read
 
 	t.Tournaments.Set(newTournament.ID, newTournament)
 
-	schedule := "@every 1m"
+	schedule := "@every 7m"
 	// start updating every x scheduled minutes for the new tournament
 	err = t.cron.AddFunc(schedule, updateLoop(t.DB, &newTournament, t))
 	if err != nil {

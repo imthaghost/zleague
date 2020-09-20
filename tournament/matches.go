@@ -7,8 +7,6 @@ import (
 
 // updates the stats of a given player, takes a player and a list of matches as an argument
 func updateStats(player *models.Player, matches cod.MatchData) {
-	// var newMatches []models.Match
-
 	// iterate over the matches
 	for _, match := range matches.Data.Matches {
 		// checks to make sure the match is during the tournament times and is an allowed type of match
@@ -40,7 +38,6 @@ func updateStats(player *models.Player, matches cod.MatchData) {
 
 		// append the matches into the player reference and into a newMatches array
 		player.Matches = append(player.Matches, newMatch)
-		// newMatches = append(newMatches, newMatch)
 
 		// add stats to the players total
 		player.Total.TotalKills += int(match.Segments[0].Stats.Kills.Value)

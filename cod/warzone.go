@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -16,19 +15,23 @@ import (
 // GetMoreWarzoneMatches returns 140 matches
 // TODO: use this somewhere or delete u frickin pepegas
 func GetMoreWarzoneMatches(username string) ([]MatchData, error) {
-	var allMatches []MatchData
+	var matches []MatchData
 
+	// pagination ids
 	reqs := []string{"null", "1598805852999", "1598214721999", "1598113460999", "1597612561999", "1597528982999", "1596998692999"}
 	// base uri
 	uri := "https://api.tracker.gg/api/v1/warzone/matches/atvi/%s?type=wz&next=%s"
 
 	for _, val := range reqs {
 		endpoint := fmt.Sprintf(uri, username, val)
+
 		resp, err := http.Get(endpoint)
 		if err != nil {
-			log.Fatal(err)
+			return []MatchData{}, err
 		}
+
 		defer resp.Body.Close()
+
 		if resp.StatusCode == 200 {
 			body, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
@@ -41,16 +44,15 @@ func GetMoreWarzoneMatches(username string) ([]MatchData, error) {
 				return []MatchData{}, err
 			}
 
-			allMatches = append(allMatches, matchData)
+			matches = append(matches, matchData)
 		}
 	}
-	return allMatches, nil
+	return matches, nil
 }
 
 // GetMatchData will return the data about a match for a given user
 func GetMatchData(username string, client *http.Client) (MatchData, error) {
 	var matchData MatchData
-	var Code int
 	// url
 	rawURL := "https://api.tracker.gg/api/v1/warzone/matches/atvi/%s?type=wz&next=null"
 	// api url
@@ -83,8 +85,6 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 			s := resp.StatusCode
 			// 500
 			if s >= http.StatusInternalServerError {
-				// assign current status code
-				Code = s
 				// Fully consume the body, which will also lead to us reading
 				// the trailer headers after the body, if present.
 				_, err = io.Copy(ioutil.Discard, resp.Body)
@@ -98,8 +98,6 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 				return err
 				// 200
 			} else if s == http.StatusOK {
-				// assign current status code
-				Code = s
 				// read body
 				body, err := ioutil.ReadAll(resp.Body)
 				if err != nil {
@@ -122,8 +120,6 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 				return nil
 				// 404
 			} else if s == http.StatusNotFound {
-				// assign current status code
-				Code = s
 				// Fully consume the body, which will also lead to us reading
 				// the trailer headers after the body, if present.
 				_, err = io.Copy(ioutil.Discard, resp.Body)
@@ -136,31 +132,29 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 				err := fmt.Errorf("NOT FOUND Respone code: %d", s)
 				return err
 			} else {
-				Code = s
 				err := fmt.Errorf("This was not handled: %d", s)
 				return err
 			}
 		},
 	)
-	// hope fully never gets called
+
+	// this should never be called if everything goes well
 	if retryErr != nil {
-		fmt.Println(retryErr)
+		return MatchData{}, retryErr
 	}
-	return matchData, fmt.Errorf("GetMatchData: status code %d: %s", Code, username)
+
+	return matchData, nil
 }
 
 // GetStatData retrieves the stats of an individual player in warzone
 func GetStatData(username string, client *http.Client) (StatData, error) {
 	var statData StatData
-	var Code int
 
-	// url
 	rawURL := "https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/%s"
-	// api url
 	url, err := url.Parse(fmt.Sprintf(rawURL, username))
-	// invalid url
+	// invalid url (probably due to username)
 	if err != nil {
-		fmt.Println("Unable to parse url")
+		return StatData{}, err
 	}
 	// build http request if there is an error we issue a retry
 	retryErr := retry.Do(
@@ -186,8 +180,6 @@ func GetStatData(username string, client *http.Client) (StatData, error) {
 			s := resp.StatusCode
 			// 500
 			if s >= http.StatusInternalServerError {
-				// assign current status code
-				Code = s
 				// Fully consume the body, which will also lead to us reading
 				// the trailer headers after the body, if present.
 				_, err = io.Copy(ioutil.Discard, resp.Body)
@@ -201,8 +193,6 @@ func GetStatData(username string, client *http.Client) (StatData, error) {
 				return err
 				// resp - 200 OK
 			} else if s == http.StatusOK {
-				// assign current status code
-				Code = s
 				// read body
 				body, err := ioutil.ReadAll(resp.Body)
 				if err != nil {
@@ -219,81 +209,50 @@ func GetStatData(username string, client *http.Client) (StatData, error) {
 				if err != nil {
 					return err
 				}
+
 				// manually close body
 				resp.Body.Close()
+
 				return nil
 				// 404
 			} else if s == http.StatusNotFound {
-				// assign current status code
-				Code = s
 				// Fully consume the body, which will also lead to us reading
 				// the trailer headers after the body, if present.
 				_, err = io.Copy(ioutil.Discard, resp.Body)
 				if err != nil {
 					return err
 				}
+
 				// manually close body
 				resp.Body.Close()
-				err := fmt.Errorf("NOT FOUND Respone code: %d", s)
-				return err
+
+				return fmt.Errorf("NOT FOUND Respone code: %d", s)
 			} else {
-				Code = s
-				err := fmt.Errorf("This was not handled: %d", s)
-				return err
+				return fmt.Errorf("This was not handled: %d", s)
 			}
 		},
 	)
-	// hope fully never gets called
+
+	// this should never be called
 	if retryErr != nil {
-		fmt.Println(Code)
-		fmt.Println(retryErr)
+		return StatData{}, err
 	}
+
 	return statData, nil
-}
-
-// GetWarzoneStats retrieves the stats of an individual player in warzone
-func GetWarzoneStats(username string) (StatData, error) {
-	var statData StatData
-	resp, err := http.Get(fmt.Sprintf("https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/%s", username))
-	if err != nil {
-		log.Println("Cannot connect to host: ", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == 200 {
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Println("getwarzonestats: can not read response body. err: ", err)
-			return StatData{}, err
-		}
-
-		err = json.Unmarshal(body, &statData)
-		if err != nil {
-			log.Println("failed to unmarshal json. err: ", err)
-			return StatData{}, err
-		}
-		// Fully consume the body, which will also lead to us reading
-		// the trailer headers after the body, if present.
-		_, err = io.Copy(ioutil.Discard, resp.Body)
-		if err != nil {
-			return StatData{}, err
-		}
-		// fully close
-		resp.Body.Close()
-		return statData, nil
-	}
-	return statData, fmt.Errorf("GetWarzoneStats: status code %d: %s", resp.StatusCode, username)
 }
 
 // IsValid checks if a user with the username exists
 func IsValid(user string) bool {
-	resp, err := http.Get(strings.TrimSpace(fmt.Sprintf("https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/%s", user)))
+	url := strings.TrimSpace(fmt.Sprintf("https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/%s", user))
+
+	resp, err := http.Get(url)
 	if err != nil {
-		log.Fatal(err)
+		return false
 	}
 
-	if resp.StatusCode == http.StatusOK {
-		return true
+	if resp.StatusCode != http.StatusOK {
+		return false
 	}
-	return false
+
+	return true
 }
