@@ -36,6 +36,19 @@ func (h *Handler) GetTeam(c echo.Context) error {
 	return c.JSON(http.StatusOK, team)
 }
 
+// GetTeamsByDivision returns all the teams for the given division
+func (h *Handler) GetTeamsByDivision(c echo.Context) error {
+	tournamentID := html.EscapeString(c.Param("id"))
+	division := html.EscapeString(c.Param("div"))
+
+	teams, err := h.manager.GetTeamsByDivision(tournamentID, division)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, "teams for that division not found")
+	}
+
+	return c.JSON(http.StatusOK, teams)
+}
+
 type invalidTeams struct {
 	Invalid []string `json:"invalid"`
 }

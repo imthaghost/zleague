@@ -153,7 +153,6 @@ func updateLoop(db *mongo.Database, t *Tournament, m *Manager) func() {
 func (m *Manager) GetTournament(id string) (Tournament, error) {
 	tourney, exists := m.Tournaments.Get(id)
 	if !exists {
-		log.Println("tournament does not exist?")
 		return Tournament{}, errors.New("manager: tournament does not exist")
 	}
 
@@ -197,4 +196,28 @@ func (m *Manager) GetTeams(id string) ([]models.Team, error) {
 	tournament := t.(Tournament)
 
 	return tournament.Teams, nil
+}
+
+// GetTeamsByDivision will return the teams in a given division
+func (m *Manager) GetTeamsByDivision(id, div string) ([]models.Team, error) {
+	t, exists := m.Tournaments.Get(id)
+	if !exists {
+		return []models.Team{}, errors.New("manager: tournament does not exist")
+	}
+
+	tournament := t.(Tournament)
+
+	var teams []models.Team
+	for _, team := range tournament.Teams {
+		if team.Division == div {
+			teams = append(teams, team)
+		}
+	}
+
+	// handle incorrect division id
+	if len(teams) == 0 {
+		return teams, errors.New("no teams found for that divison / division was incorrect")
+	}
+
+	return teams, nil
 }
