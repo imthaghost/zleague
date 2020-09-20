@@ -19,9 +19,9 @@ We limit the maximum number of connections per host.
 
 */
 var (
-	MaxIdleConnections = 10         // Max Idle Connections
+	maxIdleConnections = 10         // Max Idle Connections
 	once               sync.Once    // sync so we only setup 1 client
-	netClient          *http.Client // client
+	netClient          *http.Client // http client
 )
 
 /*
@@ -43,7 +43,7 @@ func newProxy() func(*http.Request) (*url.URL, error) {
 	// parse proxy url
 	link, err := url.Parse(proxyURL)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("invalid url to parse when creating proxy transport. err: ", err)
 	}
 	// setup proxy transport
 	proxy := http.ProxyURL(link)
@@ -68,7 +68,7 @@ func NewNetClient() *http.Client {
 		// transport configuratin
 		var netTransport = &http.Transport{
 			Proxy:        newProxy(),         // default - rotating IP addresses
-			MaxIdleConns: MaxIdleConnections, // max idle connections
+			MaxIdleConns: maxIdleConnections, // max idle connections
 			Dial: (&net.Dialer{ // Dialer
 				Timeout: 20 * time.Second, // max dialer timeout
 			}).Dial,

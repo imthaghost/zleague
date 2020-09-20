@@ -9,7 +9,6 @@ import (
 
 // TestIsValid checks returned values from IsValid function from cod package
 func TestIsValid(t *testing.T) {
-
 	is := is.New(t)
 
 	// table of invalid and or valid users

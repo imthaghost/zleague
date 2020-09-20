@@ -10,40 +10,40 @@ import (
 
 // Team represents a single team in the tournament
 type Team struct {
-	Teamname        string `json:'teamname'`
-	Division        string
-	Kills           int `json:'kills'`
-	Deaths          int
-	Assists         int
-	KD              float64
-	GamesPlayed     int `json:'gamesplayed'`
-	PlacementPoints int `json:'placementpoints'`
-	TotalPoints     int `json:'totalpoints'`
-	Headshots       int
-	DamageDone      int
-	LastMatch       string
-	Wins            int `json:'wins'`
-	Players         []Player
+	Teamname        string   `json:"team_name"`
+	Division        string   `json:"division"`
+	Kills           int      `json:"kills"`
+	Deaths          int      `json:"deaths"`
+	Assists         int      `json:"assists"`
+	KD              float64  `json:"kd"`
+	GamesPlayed     int      `json:"games_played"`
+	PlacementPoints int      `json:"placement_points"`
+	TotalPoints     int      `json:"total_points"`
+	Headshots       int      `json:"headshots"`
+	DamageDone      int      `json:"damage_done"`
+	LastMatch       string   `json:"last_match"`
+	Wins            int      `json:"wins"`
+	Players         []Player `json:"players"`
 	Total           struct {
-		TotalKills     int
-		TotalDeaths    int
-		TotalAssists   int
-		TotalHeadshots int
-		TotalKD        float64
-		TotalDamage    int
-		TotalWins      int
-		TotalScore     int
-	}
+		TotalKills     int     `json:"total_kills"`
+		TotalDeaths    int     `json:"total_deaths"`
+		TotalAssists   int     `json:"total_assists"`
+		TotalHeadshots int     `json:"total_headshots"`
+		TotalKD        float64 `json:"total_kd"`
+		TotalDamage    int     `json:"total_damage"`
+		TotalWins      int     `json:"total_wins"`
+		TotalScore     int     `json:"total_score"`
+	} `json:"total"`
 }
 
 // BasicTeam is a cleaned up version to a team
 type BasicTeam struct {
-	Teamname        string `json:"teamname"`
+	Teamname        string `json:"team_name"`
 	Wins            int    `json:"wins"`
 	Kills           int    `json:"kills"`
-	GamesPlayed     int    `json:"gamesplayed"`
-	TotalPoints     int    `json:"totalpoints"`
-	PlacementPoints int    `json:"placementpoints"`
+	GamesPlayed     int    `json:"games_played"`
+	TotalPoints     int    `json:"total_points"`
+	PlacementPoints int    `json:"placement_points"`
 }
 
 // ByPoints allows us to sort all the teams

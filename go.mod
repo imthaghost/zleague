@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	github.com/avast/retry-go v2.6.1+incompatible
-	github.com/imthaghost/codapi v0.0.0-20200827070738-ef614f23a782
 	github.com/joho/godotenv v1.3.0
 	github.com/klauspost/compress v1.10.7 // indirect
 	github.com/labstack/echo/v4 v4.1.17

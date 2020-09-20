@@ -19,11 +19,11 @@ type Tournament struct {
 
 // TeamBasic holds a simple struct of what a team consists of.
 type TeamBasic struct {
-	Teamname  string
-	Teammates []string
-	Start     time.Time
-	End       time.Time
-	Division  string
+	Teamname  string    `json:"team_name"`
+	Teammates []string  `json:"teammates"`
+	Start     time.Time `json:"start_time"`
+	End       time.Time `json:"end_time"`
+	Division  string    `json:"division"`
 }
 
 // Insert will add a new tournament to the database
@@ -34,6 +34,7 @@ func (t *Tournament) Insert(db *mongo.Database) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -55,17 +56,23 @@ func (t *Tournament) UpdateInDB(db *mongo.Database) {
 }
 
 // GetTeams returns all teams from a single tournament
-func (t *Tournament) GetTeams(db *mongo.Database, id string) []models.Team {
+func (t *Tournament) GetTeams(db *mongo.Database, id string) ([]models.Team, error) {
 	// get tournaments collection and find single tournament
-	db.Collection("tournaments").FindOne(context.TODO(), bson.M{"id": id}).Decode(&t)
+	err := db.Collection("tournaments").FindOne(context.TODO(), bson.M{"id": id}).Decode(&t)
+	if err != nil {
+		return []models.Team{}, err
+	}
 
-	return t.Teams
+	return t.Teams, nil
 }
 
 // GetTournament returns a single tournament struct
-func (t *Tournament) GetTournament(db *mongo.Database, id string) Tournament {
+func (t *Tournament) GetTournament(db *mongo.Database, id string) (Tournament, error) {
 	// get tournaments collection and find single tournament
-	db.Collection("tournaments").FindOne(context.TODO(), bson.M{"id": id}).Decode(&t)
+	err := db.Collection("tournaments").FindOne(context.TODO(), bson.M{"id": id}).Decode(&t)
+	if err != nil {
+		return Tournament{}, err
+	}
 
-	return *t
+	return *t, nil
 }
