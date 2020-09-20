@@ -1,10 +1,10 @@
-package handlers_test
+package cod_test
 
 import (
 	"os"
 	"testing"
-	"zleague/api/db"
 	"zleague/api/server"
+	"zleague/api/tests"
 )
 
 var (
@@ -13,8 +13,9 @@ var (
 
 // TestMain is an entrypoint into our handler tests
 func TestMain(m *testing.M) {
-	db := db.ConnectTest()
-	s = server.NewServer(db)
-
-	os.Exit(m.Run())
+	// setup test deps
+	s = tests.SetupTestServer()
+	code := m.Run()
+	// do teardown here
+	os.Exit(code)
 }

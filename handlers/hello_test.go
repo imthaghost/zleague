@@ -17,10 +17,9 @@ func TestHello(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
-	c := s.GetTestContext(req, rec)
-	h := handlers.NewHandler(db, m)
+	c := s.GetContext(req, rec)
+	h := handlers.New(db, m)
 
-	// make sure there is no error when we make a request
 	is.NoErr(h.Hello(c))
 
 	is.Equal(http.StatusOK, rec.Code)

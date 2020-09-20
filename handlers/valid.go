@@ -10,10 +10,11 @@ import (
 
 // Verify is a route that takes a user ID and returns if that user id is a valid Activision ID
 func (h *Handler) Verify(c echo.Context) error {
-	// sanitize
 	id := html.EscapeString(c.Param("id"))
-	// does the user exist
-	exist := map[string]bool{"exist": cod.IsValid(id)}
-	// resp - OK - {exist: bool}
+
+	// see if the given id is a valid activision id
+	valid := cod.IsValid(id)
+	exist := map[string]bool{"exist": valid}
+
 	return c.JSON(http.StatusOK, exist)
 }

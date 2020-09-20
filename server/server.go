@@ -1,6 +1,7 @@
 package server
 
 import (
+	"net/http"
 	"zleague/api/db"
 	"zleague/api/tournament"
 
@@ -12,17 +13,17 @@ import (
 type Server struct {
 	e       *echo.Echo
 	db      *mongo.Database
-	manager *tournament.TournamentManager
+	manager *tournament.Manager
 }
 
-// NewServer will create a new instance of the server.
-func NewServer(database *mongo.Database) *Server {
+//New will create a new instance of the server.
+func New(database *mongo.Database) *Server {
 	if database == nil {
 		database = db.Connect()
 	}
 
 	// create and start the tournament manager
-	manager := tournament.NewTournamentManager(database)
+	manager := tournament.NewManager(database)
 	manager.Start()
 
 	return &Server{
@@ -38,7 +39,7 @@ func (s *Server) GetDB() *mongo.Database {
 }
 
 // GetManager will return the tournament manager that is on the server
-func (s *Server) GetManager() *tournament.TournamentManager {
+func (s *Server) GetManager() *tournament.Manager {
 	return s.manager
 }
 
@@ -52,7 +53,13 @@ func (s *Server) Start(port string) {
 	// register routes
 	s.Routes()
 
+	// start server
 	s.e.Logger.Fatal(s.e.Start(port))
+}
+
+// GetContext will return the context of the current echo server (mainly used for testing)
+func (s *Server) GetContext(r *http.Request, w http.ResponseWriter) echo.Context {
+	return s.e.NewContext(r, w)
 }
 
 // Stop will stop the server

@@ -3,8 +3,8 @@ package models_test
 import (
 	"os"
 	"testing"
-	"zleague/api/db"
 	"zleague/api/server"
+	"zleague/api/tests"
 )
 
 var (
@@ -13,16 +13,6 @@ var (
 
 // TestMain is the entrypoint into our model tests
 func TestMain(m *testing.M) {
-	db := db.ConnectTest()
-	s = server.NewServer(db)
-
+	s = tests.SetupTestServer()
 	os.Exit(m.Run())
-}
-
-func refreshTeamTable() {
-
-}
-
-func seedTeam() {
-
 }

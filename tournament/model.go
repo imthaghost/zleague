@@ -10,12 +10,11 @@ import (
 )
 
 // Tournament struct holds the information needed to start a tournament.
-// TeamMates is an array of Activision Usernames.
 type Tournament struct {
-	ID        string
-	StartTime time.Time
-	EndTime   time.Time
-	Teams     []models.Team
+	ID        string        `json:"id"`         // ID single string to identify a single tournament
+	StartTime time.Time     `json:"start_time"` // Start time of tournament
+	EndTime   time.Time     `json:"end_time"`   // End time of tournament
+	Teams     []models.Team `json:"teams"`      // A list of teams in the tournament
 }
 
 // TeamBasic holds a simple struct of what a team consists of.
@@ -27,7 +26,7 @@ type TeamBasic struct {
 	Division  string
 }
 
-// Insert does...
+// Insert will add a new tournament to the database
 func (t *Tournament) Insert(db *mongo.Database) error {
 	coll := db.Collection("tournaments")
 
@@ -38,7 +37,7 @@ func (t *Tournament) Insert(db *mongo.Database) error {
 	return nil
 }
 
-// UpdateInDB does...
+// UpdateInDB updates the teams in the database once we have updates the players
 func (t *Tournament) UpdateInDB(db *mongo.Database) {
 	coll := db.Collection("tournaments")
 
@@ -59,7 +58,7 @@ func (t *Tournament) UpdateInDB(db *mongo.Database) {
 func (t *Tournament) GetTeams(db *mongo.Database, id string) []models.Team {
 	// get tournaments collection and find single tournament
 	db.Collection("tournaments").FindOne(context.TODO(), bson.M{"id": id}).Decode(&t)
-	// return all teams from tournament
+
 	return t.Teams
 }
 
@@ -67,6 +66,6 @@ func (t *Tournament) GetTeams(db *mongo.Database, id string) []models.Team {
 func (t *Tournament) GetTournament(db *mongo.Database, id string) Tournament {
 	// get tournaments collection and find single tournament
 	db.Collection("tournaments").FindOne(context.TODO(), bson.M{"id": id}).Decode(&t)
-	// return tournament
+
 	return *t
 }
