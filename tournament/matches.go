@@ -1,11 +1,7 @@
 package tournament
 
 import (
-<<<<<<< HEAD
-=======
-	"fmt"
 	"zleague/api/cod"
->>>>>>> ebb6dfc064bc8f61355efd3f9fe2bce9849e9779
 	"zleague/api/models"
 )
 
