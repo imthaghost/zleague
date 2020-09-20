@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"strings"
 	"zleague/api/cod"
-	"zleague/api/models"
-	"zleague/api/tournament"
 
 	"github.com/labstack/echo/v4"
 )
@@ -16,12 +14,10 @@ import (
 // GetTeams returns all teams from a tournament
 func (h *Handler) GetTeams(c echo.Context) error {
 	tournamentID := html.EscapeString(c.Param("id"))
-	m := tournament.Tournament{}
 
-	// get teams in the tournament
-	teams, err := m.GetTeams(h.db, tournamentID)
+	teams, err := h.manager.GetTeams(tournamentID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "team not found or error occured when finding team")
+		return echo.NewHTTPError(http.StatusBadRequest, "tournament not found or error occurred when finding tournament")
 	}
 
 	return c.JSON(http.StatusOK, teams)
@@ -29,26 +25,25 @@ func (h *Handler) GetTeams(c echo.Context) error {
 
 // GetTeam returns a single team from database
 func (h *Handler) GetTeam(c echo.Context) error {
+	tournamentID := html.EscapeString(c.Param("id"))
 	name := html.EscapeString(c.Param("teamname"))
-	m := models.Team{}
 
-	// bind data to the team struct and return
-	team, err := m.FindTeam(h.db, name)
+	team, err := h.manager.GetTeam(tournamentID, name)
 	if err != nil {
-		log.Println(err)
+		return echo.NewHTTPError(http.StatusNotFound, "team in that tournament with that name not found")
 	}
 
 	return c.JSON(http.StatusOK, team)
 }
 
-type InvalidTeams struct {
-	Invalid []string
+type invalidTeams struct {
+	Invalid []string `json:"invalid"`
 }
 
 // CheckTeams returns a map of team and player who are invalid
 // TODO move logic out of route
 func (h *Handler) CheckTeams(c echo.Context) error {
-	teamMap := map[string]InvalidTeams{}
+	teamMap := map[string]invalidTeams{}
 	// csv file
 	csvFormFile, err := c.FormFile("csv")
 	if err != nil {
@@ -62,7 +57,7 @@ func (h *Handler) CheckTeams(c echo.Context) error {
 
 	lines, err := csv.NewReader(csvData).ReadAll()
 	if err != nil {
-		log.Println("Cannot create new Reader ")
+		log.Println("cannot read from given csv")
 	}
 
 	for _, line := range lines {
@@ -75,7 +70,7 @@ func (h *Handler) CheckTeams(c echo.Context) error {
 				t.Invalid = append(t.Invalid, player) // append player to appropriate team
 				teamMap[team] = t
 			} else { // not present in map
-				p := InvalidTeams{}                   // create new struct reference
+				p := invalidTeams{}                   // create new struct reference
 				p.Invalid = append(p.Invalid, player) // append teammate
 				teamMap[team] = p                     // create key value pair
 			}

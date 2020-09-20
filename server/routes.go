@@ -29,13 +29,13 @@ func (s *Server) Routes() {
 	s.e.GET("/tournament/:id", r.GetTournament)
 
 	/* Unprotected Team Routes */
-	s.e.GET("/team/:teamname", r.GetTeam)
-	s.e.GET("/teams/:id", r.GetTeams)
-	s.e.GET("/teams/check", r.CheckTeams)
+	s.e.GET("/tournament/:id/team/:teamname", r.GetTeam) // get a team by name
+	s.e.GET("/tournament/:id/teams", r.GetTeams)         // get a team for the tournament
 	// s.e.GET("/teams/:id/:div")
 
-	// Verify a player exists
+	// Player /
 	s.e.GET("/check/:id", r.Verify)
+	s.e.GET("/check/teams", r.CheckTeams) // make sure that teams exist
 
 	// protected routes are protected by basic auth and mostly used for admin stuff if shit hits the fan
 	protected := s.e.Group("/protected")

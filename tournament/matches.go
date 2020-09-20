@@ -20,6 +20,13 @@ func updateStats(player *models.Player, matches cod.MatchData) {
 			continue
 		}
 
+		var kd float64
+		if match.Segments[0].Stats.Deaths.Value == 0 {
+			kd = float64(match.Segments[0].Stats.Kills.Value)
+		} else {
+			kd = match.Segments[0].Stats.Kills.Value / match.Segments[0].Stats.Deaths.Value
+		}
+
 		// create a new match structure and store the data from the API
 		newMatch := models.Match{
 			ID:         match.Attributes.ID,
@@ -29,7 +36,7 @@ func updateStats(player *models.Player, matches cod.MatchData) {
 			Deaths:     int(match.Segments[0].Stats.Deaths.Value),
 			Assists:    int(match.Segments[0].Stats.Assists.Value),
 			Headshots:  int(match.Segments[0].Stats.Headshots.Value),
-			KD:         (match.Segments[0].Stats.Kills.Value / match.Segments[0].Stats.Deaths.Value),
+			KD:         kd,
 			TimePlayed: match.Segments[0].Stats.TeamSurvivalTime.DisplayValue,
 			Placement:  match.Segments[0].Stats.Placement.Value,
 			DamageDone: int(match.Segments[0].Stats.DamageDone.Value),
@@ -44,7 +51,13 @@ func updateStats(player *models.Player, matches cod.MatchData) {
 		player.Total.TotalAssists += int(match.Segments[0].Stats.Assists.Value)
 		player.Total.TotalDamage += int(match.Segments[0].Stats.DamageDone.Value)
 		player.Total.TotalDeaths += int(match.Segments[0].Stats.Deaths.Value)
-		player.Total.TotalKD = (float64(player.Total.TotalKills) / float64(player.Total.TotalDeaths))
+
+		if player.Total.TotalDeaths == 0 {
+			player.Total.TotalKD = float64(player.Total.TotalKills)
+		} else {
+			player.Total.TotalKD = (float64(player.Total.TotalKills) / float64(player.Total.TotalDeaths))
+		}
+
 		player.Total.TotalHeadshots += int(match.Segments[0].Stats.Headshots.Value)
 		player.Total.TotalScore += newMatch.Score
 		player.GamesPlayed++

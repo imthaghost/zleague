@@ -9,14 +9,14 @@ type Player struct {
 	TournamentStartTime time.Time `json:"start_time"`
 	TournamentEndTime   time.Time `json:"end_time"`
 	Total               struct {
-		TotalKills     int     `json:"total_kills"`
-		TotalDeaths    int     `json:"total_deaths"`
-		TotalAssists   int     `json:"total_assists"`
-		TotalHeadshots int     `json:"total_headshots"`
-		TotalKD        float64 `json:"total_kd"`
-		TotalDamage    int     `json:"total_damage"`
-		TotalWins      int     `json:"total_wins"`
-		TotalScore     int     `json:"total_score"`
+		TotalKills     int     `json:"kills"`
+		TotalDeaths    int     `json:"deaths"`
+		TotalAssists   int     `json:"assists"`
+		TotalHeadshots int     `json:"headshots"`
+		TotalKD        float64 `json:"kd"`
+		TotalDamage    int     `json:"damage"`
+		TotalWins      int     `json:"wins"`
+		TotalScore     int     `json:"score"`
 	} `json:"total"`
 	Username        string  `json:"username"`
 	Wins            int     `json:"wins"`

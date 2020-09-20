@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"time"
+	"zleague/api/models"
 
 	cmap "github.com/orcaman/concurrent-map"
 	"github.com/robfig/cron"
@@ -63,7 +64,7 @@ func NewManager(db *mongo.Database) *Manager {
 }
 
 // Start will start a new tournament
-func (t *Manager) Start() {
+func (m *Manager) Start() {
 	// default to every 7 minutes
 	schedule := "@every 7m"
 	// create new cron instance for all our update loops
@@ -71,11 +72,11 @@ func (t *Manager) Start() {
 
 	// start a new loop for every tournament
 	log.Println("Cron Starting")
-	for id, tourney := range t.Tournaments.Items() {
+	for id, tourney := range m.Tournaments.Items() {
 		log.Println("Starting Update Loop. Tournament ID: ", id)
 		tournament := tourney.(Tournament)
 		// start updating every x scheduled minutes
-		err := c.AddFunc(schedule, updateLoop(t.DB, &tournament, t))
+		err := c.AddFunc(schedule, updateLoop(m.DB, &tournament, m))
 		if err != nil {
 			log.Printf("Error adding update loop on start. ID: %s", tournament.ID)
 		}
@@ -85,26 +86,26 @@ func (t *Manager) Start() {
 	c.Start()
 
 	// bind to tournament manager so we can start more crons and what not
-	t.cron = c
+	m.cron = c
 }
 
 // NewTournament is designed to create a new tournament, and then save it to the struct and the database and return it
-func (t *Manager) NewTournament(start, end time.Time, id string, csvData io.Reader) Tournament {
+func (m *Manager) NewTournament(start, end time.Time, id string, csvData io.Reader) Tournament {
 	// create a new tournament
 	// TODO: Start the cron job for this tournament because it wont be started from the "start"
 	teams := CreateTeams(start, end, csvData)
 	newTournament := NewTournament(teams, id, start, end)
 
-	err := newTournament.Insert(t.DB)
+	err := newTournament.Insert(m.DB)
 	if err != nil {
 		log.Println("manager: error creating new tournament in db: ", err)
 	}
 
-	t.Tournaments.Set(newTournament.ID, newTournament)
+	m.Tournaments.Set(newTournament.ID, newTournament)
 
 	schedule := "@every 1m"
 	// start updating every x scheduled minutes for the new tournament
-	err = t.cron.AddFunc(schedule, updateLoop(t.DB, &newTournament, t))
+	err = m.cron.AddFunc(schedule, updateLoop(m.DB, &newTournament, m))
 	if err != nil {
 		log.Printf("Error adding update loop on start. ID: %s", newTournament.ID)
 	}
@@ -149,9 +150,10 @@ func updateLoop(db *mongo.Database, t *Tournament, m *Manager) func() {
 // GetTournament will get a tournament from memory
 // GET /tournament/:id
 // GET /tournament/:id/teams/:id
-func (t *Manager) GetTournament(db *mongo.Database, id string) (Tournament, error) {
-	tourney, exists := t.Tournaments.Get(id)
+func (m *Manager) GetTournament(id string) (Tournament, error) {
+	tourney, exists := m.Tournaments.Get(id)
 	if !exists {
+		log.Println("tournament does not exist?")
 		return Tournament{}, errors.New("manager: tournament does not exist")
 	}
 
@@ -160,7 +162,39 @@ func (t *Manager) GetTournament(db *mongo.Database, id string) (Tournament, erro
 }
 
 // AllTournaments will return all current active tournaments
-func (t *Manager) AllTournaments() ([]Tournament, error) {
+func (m *Manager) AllTournaments() ([]Tournament, error) {
 	// TODO: logic
 	return []Tournament{}, nil
+}
+
+// GetTeam will return a single team that is within a tournament cache
+func (m *Manager) GetTeam(id, name string) (models.Team, error) {
+	t, exists := m.Tournaments.Get(id)
+	if !exists {
+		return models.Team{}, errors.New("tournament not found")
+	}
+
+	tournament := t.(Tournament)
+
+	for _, team := range tournament.Teams {
+		// if we find the team with the given name
+		if team.Teamname == name {
+			return team, nil
+		}
+	}
+
+	// we did not find the team
+	return models.Team{}, errors.New("team with that name not found within this tournament")
+}
+
+// GetTeams will return the teams that are in the cache
+func (m *Manager) GetTeams(id string) ([]models.Team, error) {
+	t, exists := m.Tournaments.Get(id)
+	if !exists {
+		return []models.Team{}, errors.New("manager: tournament does not exist")
+	}
+
+	tournament := t.(Tournament)
+
+	return tournament.Teams, nil
 }
