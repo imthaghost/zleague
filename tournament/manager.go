@@ -102,7 +102,7 @@ func (t *Manager) NewTournament(start, end time.Time, id string, csvData io.Read
 
 	t.Tournaments.Set(newTournament.ID, newTournament)
 
-	schedule := "@every 7m"
+	schedule := "@every 1m"
 	// start updating every x scheduled minutes for the new tournament
 	err = t.cron.AddFunc(schedule, updateLoop(t.DB, &newTournament, t))
 	if err != nil {

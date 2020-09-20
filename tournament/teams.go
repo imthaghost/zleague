@@ -128,6 +128,12 @@ func updateTeam(team *models.Team) *models.Team {
 	team.KD = float64(0)
 	team.Wins = 0
 
+	team.Total.TotalKills = 0
+	team.Total.TotalDeaths = 0
+	team.Total.TotalAssists = 0
+	team.Total.TotalHeadshots = 0
+	team.Total.TotalDamage = 0
+
 	for i, player := range team.Players {
 		team.Kills += player.Kills
 		team.Deaths += player.Deaths

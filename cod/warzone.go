@@ -232,15 +232,6 @@ func GetStatData(username string, client *http.Client) (StatData, error) {
 			}
 		},
 	)
-<<<<<<< HEAD
-	// hope fully never gets called
-	if retryErr != nil {
-		fmt.Println(retryErr, Code)
-	}
-	return statData, nil
-}
-=======
->>>>>>> 8041af2bfbdcc46b53f4bcbff5a59489536268a2
 
 	// this should never be called
 	if retryErr != nil {
