@@ -31,6 +31,7 @@ func (s *Server) Routes() {
 	/* Unprotected Team Routes */
 	s.e.GET("/team/:teamname", r.GetTeam)
 	s.e.GET("/teams/:id", r.GetTeams)
+	// s.e.GET("/teams/:id/:div")
 
 	// Verify a player exists
 	s.e.GET("/check/:id", r.Verify)

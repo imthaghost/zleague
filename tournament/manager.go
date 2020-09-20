@@ -78,7 +78,7 @@ func (t *Manager) Start() {
 		log.Println("Starting Update Loop. Tournament ID: ", id)
 		tournament := tourney.(Tournament)
 		// start updating every x scheduled minutes
-		c.AddFunc(schedule, updateLoop(t.DB, &tournament))
+		c.AddFunc(schedule, updateLoop(t.DB, &tournament, t))
 	}
 
 	// start the jobs
@@ -104,12 +104,12 @@ func (t *Manager) NewTournament(start, end time.Time, id string, csvData io.Read
 
 	schedule := "@every 1m"
 	// start updating every x scheduled minutes for the new tournament
-	t.cron.AddFunc(schedule, updateLoop(t.DB, &newTournament))
+	t.cron.AddFunc(schedule, updateLoop(t.DB, &newTournament, t))
 
 	return newTournament
 }
 
-func updateLoop(db *mongo.Database, t *Tournament) func() {
+func updateLoop(db *mongo.Database, t *Tournament, m *Manager) func() {
 	return func() {
 		// if time is before the time of the tournament, do nothing
 		if time.Now().Before(t.StartTime) {
@@ -131,7 +131,12 @@ func updateLoop(db *mongo.Database, t *Tournament) func() {
 		t.Update()
 		t.UpdateInDB(db)
 		log.Println("Done Updating Tournament. ID: ", t.ID)
+
 		// TODO: Update the tournament manager in memory with the updated tournament?
+		tourney := Tournament{}
+		tournament := tourney.GetTournament(db, t.ID)
+		// update the tournament manager hashmap at once
+		m.Tournaments.Set(t.ID, tournament)
 	}
 }
 

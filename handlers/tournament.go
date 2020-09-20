@@ -58,11 +58,14 @@ func (h *Handler) CreateTournament(c echo.Context) (err error) {
 // GetTournament will return a tournament that is in the database
 func (h *Handler) GetTournament(c echo.Context) error {
 	id := html.EscapeString(c.Param("id"))
-	m := tournament.Tournament{}
+	// m := tournament.Tournament{}
+	// tournament := m.GetTournament(h.db, id)
+	t, exists := h.manager.Tournaments.Get(id)
+	if !exists {
+		return echo.NewHTTPError(http.StatusNotFound, "Tournament with that ID not found.")
+	}
 
-	tournament := m.GetTournament(h.db, id)
-
-	return c.JSON(http.StatusOK, tournament)
+	return c.JSON(http.StatusOK, t.(tournament.Tournament))
 }
 
 // UpdateTournament will update the tournament with the given body
