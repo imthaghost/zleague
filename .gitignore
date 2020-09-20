@@ -3,3 +3,5 @@ api
 .git
 zleague-api
 .DS_Store
+
+database/

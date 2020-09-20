@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"zleague/api/config"
 
@@ -17,8 +18,10 @@ func Connect() *mongo.Database {
 		Username: dbConfig.Username,
 		Password: dbConfig.Password,
 	}
+	uri := options.Client().ApplyURI(dbConfig.URI).SetAuth(auth)
 
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(dbConfig.URI).SetAuth(auth))
+	fmt.Println(uri)
+	client, err := mongo.Connect(context.TODO(), uri)
 	if err != nil {
 		log.Fatal(err)
 	}
