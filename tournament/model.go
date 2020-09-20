@@ -11,10 +11,10 @@ import (
 
 // Tournament struct holds the information needed to start a tournament.
 type Tournament struct {
-	ID        string        // ID single string to identify a single tournament
-	StartTime time.Time     // Start time of tournament
-	EndTime   time.Time     // End time of tournament
-	Teams     []models.Team // A list of teams in the tournament
+	ID        string        `json:"id"`         // ID single string to identify a single tournament
+	StartTime time.Time     `json:"start_time"` // Start time of tournament
+	EndTime   time.Time     `json:"end_time"`   // End time of tournament
+	Teams     []models.Team `json:"teams"`      // A list of teams in the tournament
 }
 
 // TeamBasic holds a simple struct of what a team consists of.

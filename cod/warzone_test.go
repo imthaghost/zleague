@@ -1,7 +1,8 @@
-package cod
+package cod_test
 
 import (
 	"testing"
+	"zleague/api/cod"
 
 	"github.com/matryer/is"
 )
@@ -23,12 +24,10 @@ func TestIsValid(t *testing.T) {
 		{"%23", false},
 		{"\n", false},
 		{"Temporis#1318655", false},
-		{"ghost#2891963", false},
-		{"onesicksikh#1221896", false},
 	}
 	// each user in table
 	for _, user := range userTable {
-		result := IsValid(user.username)
+		result := cod.IsValid(user.username)
 		expected := user.expected
 		is.Equal(result, expected)
 	}

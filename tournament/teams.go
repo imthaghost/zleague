@@ -1,6 +1,7 @@
 package tournament
 
 import (
+	"net/http"
 	"sort"
 	"zleague/api/models"
 	"zleague/api/proxy"
@@ -10,14 +11,14 @@ import (
 func (t *Tournament) Update() {
 	// instantiate 4 channels to use to pass the teams through,
 	// one for the starting teams, updated teams, players and one finalize channel
-	teamChan := make(chan *models.Team, 1000)
-	updateChan := make(chan *models.Team, 1000)
-	player := make(chan *models.Player, 1000)
-	fin := make(chan bool, 1000)
+	teamChan := make(chan *models.Team, len(t.Teams)*2)
+	updateChan := make(chan *models.Team, len(t.Teams)*2)
+	player := make(chan *models.Player, len(t.Teams)*4)
+	fin := make(chan bool, len(t.Teams)*4)
 	client := proxy.NewNetClient() // sync http client
 
-	// instantiate 20 workers on each goroutine
-	// 20 is the max amount of workers before rate limiting from the API
+	// instantiate 30 workers on each goroutine
+	// 30 is the max amount of workers before rate limiting from the API
 	for i := 0; i < 30; i++ {
 		go updateWorker(teamChan, player)
 		go playerWorker(player, client, fin)
@@ -52,6 +53,8 @@ func (t *Tournament) Update() {
 
 // creates all the teams concurrently
 func createTeams(t map[string]TeamBasic) []models.Team {
+	// client
+	c := proxy.NewNetClient()
 	var allTeams []models.Team
 
 	// instantiate two channels to pass the teams through
@@ -60,7 +63,7 @@ func createTeams(t map[string]TeamBasic) []models.Team {
 
 	// start 20 goroutines
 	for i := 0; i < 20; i++ {
-		go teamWorker(basicChan, teamChan)
+		go teamWorker(basicChan, teamChan, c)
 	}
 	// for every team in the map, add each to the channel
 	for _, team := range t {
@@ -77,7 +80,7 @@ func createTeams(t map[string]TeamBasic) []models.Team {
 }
 
 // CreateTeam instantiates a default Team
-func createTeam(t TeamBasic) models.Team {
+func createTeam(t TeamBasic, client *http.Client) models.Team {
 	team := models.Team{
 		Teamname:    t.Teamname,
 		Kills:       0,
@@ -101,16 +104,17 @@ func createTeam(t TeamBasic) models.Team {
 
 	// for every player that is on the team, create a player object and add them to the players list
 	for _, player := range t.Teammates {
-		team.Players = append(team.Players, CreatePlayer(player, t.Teamname, t.Start, t.End))
+		p := CreatePlayer(player, t.Teamname, t.Start, t.End, client)
+		team.Players = append(team.Players, p)
 	}
 	return team
 }
 
 // worker to concurrently create all the teams
-func teamWorker(basic chan TeamBasic, team chan models.Team) {
+func teamWorker(basic chan TeamBasic, team chan models.Team, client *http.Client) {
 	// checks the channel for team objects and passes created teams into the team channel
 	for t := range basic {
-		team <- createTeam(t)
+		team <- createTeam(t, client)
 	}
 }
 

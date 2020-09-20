@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-// Create a map of teams and players
-func Create(start, end time.Time, csvData io.Reader) map[string]TeamBasic {
+// CreateTeams a map of teams and players
+func CreateTeams(start, end time.Time, csvData io.Reader) map[string]TeamBasic {
 	// read file line by line
 	lines, err := csv.NewReader(csvData).ReadAll()
 	if err != nil {

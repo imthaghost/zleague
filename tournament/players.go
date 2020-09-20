@@ -10,14 +10,13 @@ import (
 )
 
 // CreatePlayer creates a default Player instance
-func CreatePlayer(username, teamname string, startTime, endTime time.Time) models.Player {
-	stats, err := cod.GetWarzoneStats(username)
+func CreatePlayer(username, teamname string, startTime, endTime time.Time, client *http.Client) models.Player {
+	stats, err := cod.GetStatData(username, client)
 	if err != nil {
 		// TODO: Figure out what to do if player username doesnt exist
 		log.Println(err)
 		return models.Player{}
 	}
-
 	// instantiate a player model to store the data in.
 	player := models.Player{
 		TournamentStartTime: startTime,

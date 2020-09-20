@@ -76,8 +76,8 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 			}
 			// read response status code
 			s := resp.StatusCode
-			// resp - 500
-			if s >= 500 {
+			// 500
+			if s >= http.StatusInternalServerError {
 				// assign current status code
 				Code = s
 				// Fully consume the body, which will also lead to us reading
@@ -88,7 +88,7 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 				// return custom error
 				err := fmt.Errorf("Respone code: %d", s)
 				return err
-				// resp - 200 OK
+				// 200
 			} else if s == http.StatusOK {
 				// assign current status code
 				Code = s
@@ -109,8 +109,8 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 				resp.Body.Close()
 				// no error
 				return nil
-				// resp - 404 - NOT FOUND
-			} else if s == 404 {
+				// 404
+			} else if s == http.StatusNotFound {
 				// assign current status code
 				Code = s
 				// Fully consume the body, which will also lead to us reading
@@ -135,9 +135,96 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 	return matchData, fmt.Errorf("GetMatchData: status code %d: %s", Code, username)
 }
 
-// GetStatsData
-func GetStatsData() {
+// GetStatData retrieves the stats of an individual player in warzone
+func GetStatData(username string, client *http.Client) (StatData, error) {
+	var statData StatData
+	var Code int
 
+	// url
+	rawURL := "https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/%s"
+	// api url
+	url, err := url.Parse(fmt.Sprintf(rawURL, username))
+	// invalid url
+	if err != nil {
+		fmt.Println("Unable to parse url")
+	}
+	// build http request if there is an error we issue a retry
+	retryErr := retry.Do(
+		func() error {
+			req, err := http.NewRequest(
+				http.MethodGet,
+				url.String(),
+				nil,
+			)
+			if err != nil {
+				return err
+			}
+			// set a normal/non-hackerman user agent
+			req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Safari/537.36")
+			// just to see if their server is checking remote ip ;)
+			req.Header.Set("X-Remote-IP", "127.0.0.1")
+			// default client
+			resp, err := client.Do(req)
+			if err != nil {
+				return err
+			}
+			// read response status code
+			s := resp.StatusCode
+			// 500
+			if s >= http.StatusInternalServerError {
+				// assign current status code
+				Code = s
+				// Fully consume the body, which will also lead to us reading
+				// the trailer headers after the body, if present.
+				io.Copy(ioutil.Discard, resp.Body)
+				// close
+				resp.Body.Close()
+				// return custom error
+				err := fmt.Errorf("Respone code: %d", s)
+				return err
+				// resp - 200 OK
+			} else if s == http.StatusOK {
+				// assign current status code
+				Code = s
+				// read body
+				body, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					return err
+				}
+				// unmarshal json into stat data struct
+				err = json.Unmarshal(body, &statData)
+				if err != nil {
+					return err
+				}
+				// Fully consume the body, which will also lead to us reading
+				// the trailer headers after the body, if present.
+				io.Copy(ioutil.Discard, resp.Body)
+				// manually close body
+				resp.Body.Close()
+				return nil
+				// 404
+			} else if s == http.StatusNotFound {
+				// assign current status code
+				Code = s
+				// Fully consume the body, which will also lead to us reading
+				// the trailer headers after the body, if present.
+				io.Copy(ioutil.Discard, resp.Body)
+				// manually close body
+				resp.Body.Close()
+				err := fmt.Errorf("NOT FOUND Respone code: %d", s)
+				return err
+			} else {
+				Code = s
+				err := fmt.Errorf("This was not handled: %d", s)
+				return err
+			}
+		},
+	)
+	// hope fully never gets called
+	if retryErr != nil {
+		fmt.Println(retryErr)
+	}
+	return statData, nil
 }
 
 // GetWarzoneStats retrieves the stats of an individual player in warzone

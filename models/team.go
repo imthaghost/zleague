@@ -10,19 +10,19 @@ import (
 
 // Team represents a single team in the tournament
 type Team struct {
-	Teamname        string
+	Teamname        string `json:'teamname'`
 	Division        string
-	Kills           int
+	Kills           int `json:'kills'`
 	Deaths          int
 	Assists         int
 	KD              float64
-	GamesPlayed     int
-	PlacementPoints int
-	TotalPoints     int
+	GamesPlayed     int `json:'gamesplayed'`
+	PlacementPoints int `json:'placementpoints'`
+	TotalPoints     int `json:'totalpoints'`
 	Headshots       int
 	DamageDone      int
 	LastMatch       string
-	Wins            int
+	Wins            int `json:'wins'`
 	Players         []Player
 	Total           struct {
 		TotalKills     int
