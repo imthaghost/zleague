@@ -5,6 +5,9 @@ FROM golang:alpine3.12
 ENV APP_NAME zleague-api
 ENV PORT 8080
 
+# Set open file limit
+RUN ulimit -n 100000
+
 # Open system port
 EXPOSE ${PORT}
 
