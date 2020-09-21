@@ -83,6 +83,11 @@ func updatePlayer(player *models.Player) {
 
 	// iterate over all of the matches and update the stats
 	for _, match := range player.BestMatches {
+		// update player wins
+		if match.Placement == 1 {
+			player.Wins++
+		}
+
 		player.Kills += match.Kills
 		player.Deaths += match.Deaths
 		player.Assists += match.Assists
