@@ -80,6 +80,7 @@ func updatePlayer(player *models.Player) {
 	player.KD = float64(0)
 	player.DamageDone = 0
 	player.PlacementPoints = 0
+	player.Wins = 0
 
 	// iterate over all of the matches and update the stats
 	for _, match := range player.BestMatches {
