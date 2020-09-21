@@ -120,15 +120,14 @@ func updateLoop(db *mongo.Database, t *Tournament, m *Manager) func() {
 			return
 		}
 
-		log.Println("Updating Tournament. ID: ", t.ID)
+		// we stop the cron job 30 minutes after the tournament endtime
+		if time.Now().After(t.EndTime.Add(time.Minute * time.Duration(30))) {
+			// graceful kill
+			log.Println("Not running update. Tournament updated.")
+			return
+		}
 
-		// log.Println("Current time " + time.Now().Format(time.RFC3339))
-		// // we stop the cron job 30 minutes after the tournament endtime
-		// if time.Now().After(tournament.EndTime.Add(time.Minute * time.Duration(30))) {
-		//     // graceful kill
-		//     log.Println("stopping cron")
-		//     c.Stop()
-		// }
+		log.Println("Updating Tournament. ID: ", t.ID)
 
 		// Update all the teams
 		t.Update()
