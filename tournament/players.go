@@ -62,7 +62,7 @@ func playerWorker(playerChan chan *models.Player, client *http.Client, fin chan 
 		updateStats(player, all)
 
 		// sort and add the best matches into the bestMatches array
-		player.BestMatches = sortMatches(player.Matches, 4)
+		// player.BestMatches = sortMatches(player.Matches, 4)
 		// finally update the stats of the player
 		updatePlayer(player)
 		// pass a value into the finalize channel, can be used to create a progress bar

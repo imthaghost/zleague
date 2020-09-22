@@ -1,4 +1,4 @@
-package tournament
+package models
 
 import (
 	"context"
@@ -11,10 +11,13 @@ import (
 
 // Tournament struct holds the information needed to start a tournament.
 type Tournament struct {
-	ID        string        `json:"id"`         // ID single string to identify a single tournament
-	StartTime time.Time     `json:"start_time"` // Start time of tournament
-	EndTime   time.Time     `json:"end_time"`   // End time of tournament
-	Teams     []models.Team `json:"teams"`      // A list of teams in the tournament
+	ID    string        `json:"id"`    // ID single string to identify a single tournament
+	Teams []models.Team `json:"teams"` // A list of teams in the tournament
+	Rules struct {
+		StartTime    time.Time `json:"start_time"` // Start time of tournament
+		EndTime      time.Time `json:"end_time"`   // End time of tournament
+		BestGamesNum int       `json:"best_games_num"`
+	} `json:"rules"`
 }
 
 // TeamBasic holds a simple struct of what a team consists of.
@@ -38,7 +41,7 @@ func (t *Tournament) Insert(db *mongo.Database) error {
 	return nil
 }
 
-// UpdateInDB updates the teams in the database once we have updates the players
+// UpdateInDB updates the teams in the database once we have updated the players
 func (t *Tournament) UpdateInDB(db *mongo.Database) {
 	coll := db.Collection("tournaments")
 
