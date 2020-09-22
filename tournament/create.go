@@ -6,17 +6,18 @@ import (
 	"log"
 	"strings"
 	"time"
+	"zleague/api/models"
 )
 
 // CreateTeams a map of teams and players
-func CreateTeams(start, end time.Time, csvData io.Reader) map[string]TeamBasic {
+func CreateTeams(start, end time.Time, csvData io.Reader) map[string]models.TeamBasic {
 	// read file line by line
 	lines, err := csv.NewReader(csvData).ReadAll()
 	if err != nil {
 		log.Fatal(err)
 	}
 	// team map
-	teamMap := map[string]TeamBasic{}
+	teamMap := map[string]models.TeamBasic{}
 	// for each line in csv grab the division player id and teamname
 	for _, line := range lines {
 		div := line[0]
@@ -29,9 +30,9 @@ func CreateTeams(start, end time.Time, csvData io.Reader) map[string]TeamBasic {
 			t.Teammates = append(t.Teammates, player) // append player to appropriate team
 			teamMap[team] = t
 		} else { // not present in map
-			p := TeamBasic{Division: div, Teamname: team, Start: start, End: end} // create new struct reference
-			p.Teammates = append(p.Teammates, player)                             // append teammate
-			teamMap[team] = p                                                     // create key value pair
+			p := models.TeamBasic{Division: div, Teamname: team, Start: start, End: end} // create new struct reference
+			p.Teammates = append(p.Teammates, player)                                    // append teammate
+			teamMap[team] = p                                                            // create key value pair
 		}
 	}
 

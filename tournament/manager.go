@@ -3,10 +3,14 @@ package tournament
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"log"
+	"net/http"
+	"sort"
 	"time"
 	"zleague/api/models"
+	"zleague/api/proxy"
 
 	cmap "github.com/orcaman/concurrent-map"
 	"github.com/robfig/cron"
@@ -28,9 +32,6 @@ type Manager struct {
 func NewManager(db *mongo.Database) *Manager {
 	// create a new tournament manager
 	// m := &Manager{
-	// 	Tournaments: map[string]Tournament{},
-	// 	DB:          db,
-	// }
 	m := &Manager{
 		Tournaments: cmap.New(),
 		DB:          db,
@@ -48,7 +49,7 @@ func NewManager(db *mongo.Database) *Manager {
 
 	// loop through the different tournaments
 	for cursor.Next(ctx) {
-		var tournament Tournament
+		var tournament models.Tournament
 		err := cursor.Decode(&tournament)
 
 		if err != nil {
@@ -65,7 +66,7 @@ func NewManager(db *mongo.Database) *Manager {
 // Start will start a new tournament
 func (m *Manager) Start() {
 	// default to every 3 minutes
-	schedule := "@every 3m"
+	schedule := "@every 30s"
 	// create new cron instance for all our update loops
 	c := cron.New()
 
@@ -73,7 +74,7 @@ func (m *Manager) Start() {
 	log.Println("Cron Starting")
 	for id, tourney := range m.Tournaments.Items() {
 		log.Println("Starting Update Loop. Tournament ID: ", id)
-		tournament := tourney.(Tournament)
+		tournament := tourney.(models.Tournament)
 		// start updating every x scheduled minutes
 		err := c.AddFunc(schedule, updateLoop(m.DB, &tournament, m))
 		if err != nil {
@@ -89,11 +90,21 @@ func (m *Manager) Start() {
 }
 
 // NewTournament is designed to create a new tournament, and then save it to the struct and the database and return it
-func (m *Manager) NewTournament(start, end time.Time, id string, csvData io.Reader) Tournament {
+func (m *Manager) NewTournament(start, end time.Time, id string, csvData io.Reader) models.Tournament {
 	// create a new tournament
 	// TODO: Start the cron job for this tournament because it wont be started from the "start"
 	teams := CreateTeams(start, end, csvData)
-	newTournament := NewTournament(teams, id, start, end)
+
+	// TODO: create rules in route
+	rules := models.Rules{
+		StartTime:    start,
+		EndTime:      end,
+		BestGamesNum: 4,
+		GameMode:     "br_brtrios",
+		TeamSize:     3,
+	}
+
+	newTournament := NewTournament(id, rules, teams)
 
 	err := newTournament.Insert(m.DB)
 	if err != nil {
@@ -102,7 +113,7 @@ func (m *Manager) NewTournament(start, end time.Time, id string, csvData io.Read
 
 	m.Tournaments.Set(newTournament.ID, newTournament)
 
-	schedule := "@every 3m"
+	schedule := "@every 30s"
 	// start updating every x scheduled minutes for the new tournament
 	err = m.cron.AddFunc(schedule, updateLoop(m.DB, &newTournament, m))
 	if err != nil {
@@ -112,30 +123,29 @@ func (m *Manager) NewTournament(start, end time.Time, id string, csvData io.Read
 	return newTournament
 }
 
-func updateLoop(db *mongo.Database, t *Tournament, m *Manager) func() {
+func updateLoop(db *mongo.Database, t *models.Tournament, m *Manager) func() {
 	return func() {
 		// if time is before the time of the tournament, do nothing
-		if time.Now().Before(t.StartTime) {
-			log.Println("Tournament has not started yet... not updating..")
-			return
-		}
+		// if time.Now().Before(t.Rules.StartTime) {
+		// 	log.Println("Tournament has not started yet... not updating..")
+		// 	return
+		// }
 
-		// we stop the cron job 30 minutes after the tournament endtime
-		if time.Now().After(t.EndTime.Add(time.Minute * time.Duration(30))) {
-			// graceful kill
-			log.Println("Not running update. Tournament updated.")
-			return
-		}
+		// // we stop the cron job 30 minutes after the tournament endtime
+		// if time.Now().After(t.Rules.EndTime.Add(time.Minute * time.Duration(30))) {
+		// 	// graceful kill
+		// 	log.Println("Not running update. Tournament updated.")
+		// 	return
+		// }
 
 		log.Println("Updating Tournament. ID: ", t.ID)
 
 		// Update all the teams
-		t.Update()
+		m.Update(t)
 		t.UpdateInDB(db)
 		log.Println("Done Updating Tournament. ID: ", t.ID)
 
-		// TODO: Update the tournament manager in memory with the updated tournament?
-		tourney := Tournament{}
+		tourney := models.Tournament{}
 		tournament, err := tourney.GetTournament(db, t.ID)
 		if err != nil {
 			log.Println("manager: error getting tournament: ")
@@ -148,20 +158,20 @@ func updateLoop(db *mongo.Database, t *Tournament, m *Manager) func() {
 // GetTournament will get a tournament from memory
 // GET /tournament/:id
 // GET /tournament/:id/teams/:id
-func (m *Manager) GetTournament(id string) (Tournament, error) {
+func (m *Manager) GetTournament(id string) (models.Tournament, error) {
 	tourney, exists := m.Tournaments.Get(id)
 	if !exists {
-		return Tournament{}, errors.New("manager: tournament does not exist")
+		return models.Tournament{}, errors.New("manager: tournament does not exist")
 	}
 
 	// convert the interface to a tournament structure
-	return tourney.(Tournament), nil
+	return tourney.(models.Tournament), nil
 }
 
 // AllTournaments will return all current active tournaments
-func (m *Manager) AllTournaments() ([]Tournament, error) {
+func (m *Manager) AllTournaments() ([]models.Tournament, error) {
 	// TODO: logic
-	return []Tournament{}, nil
+	return []models.Tournament{}, nil
 }
 
 // GetTeam will return a single team that is within a tournament cache
@@ -171,11 +181,11 @@ func (m *Manager) GetTeam(id, name string) (models.Team, error) {
 		return models.Team{}, errors.New("tournament not found")
 	}
 
-	tournament := t.(Tournament)
+	tournament := t.(models.Tournament)
 
 	for _, team := range tournament.Teams {
 		// if we find the team with the given name
-		if team.Teamname == name {
+		if team.Name == name {
 			return team, nil
 		}
 	}
@@ -191,7 +201,7 @@ func (m *Manager) GetTeams(id string) ([]models.Team, error) {
 		return []models.Team{}, errors.New("manager: tournament does not exist")
 	}
 
-	tournament := t.(Tournament)
+	tournament := t.(models.Tournament)
 
 	return tournament.Teams, nil
 }
@@ -203,7 +213,7 @@ func (m *Manager) GetTeamsByDivision(id, div string) ([]models.Team, error) {
 		return []models.Team{}, errors.New("manager: tournament does not exist")
 	}
 
-	tournament := t.(Tournament)
+	tournament := t.(models.Tournament)
 
 	var teams []models.Team
 	for _, team := range tournament.Teams {
@@ -218,4 +228,37 @@ func (m *Manager) GetTeamsByDivision(id, div string) ([]models.Team, error) {
 	}
 
 	return teams, nil
+}
+
+// Update will update all the teams in a tournament
+func (m *Manager) Update(t *models.Tournament) {
+	teamsChan := make(chan *models.Team, len(t.Teams)*2)
+	fin := make(chan int, len(t.Teams)*2)
+	client := proxy.NewNetClient() // sync http client
+
+	// create workers
+	for i := 0; i < 50; i++ {
+		go worker(teamsChan, fin, t.Rules, client)
+	}
+
+	// add all teams into the worker channel
+	for i := range t.Teams {
+		teamsChan <- &t.Teams[i]
+	}
+
+	for i := 0; i < len(t.Teams); i++ {
+		<-fin
+	}
+	// Sort the teams by the number of points they have
+	sort.Sort(models.ByPoints(t.Teams))
+}
+
+// worker will update all teams in the given channel - used in manager's update loop
+func worker(teams chan *models.Team, fin chan int, rules models.Rules, client *http.Client) {
+	// update every team
+	for team := range teams {
+		fmt.Println(team.Name)
+		team.Update(client, rules)
+		fin <- 1
+	}
 }

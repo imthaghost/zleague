@@ -1,4 +1,4 @@
-package tournament
+package models
 
 // Scoreboard decides how placement points are calculated
 var Scoreboard = map[int]int{
