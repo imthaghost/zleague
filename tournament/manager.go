@@ -3,8 +3,10 @@ package tournament
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"sort"
 	"time"
 	"zleague/api/models"
@@ -64,7 +66,7 @@ func NewManager(db *mongo.Database) *Manager {
 // Start will start a new tournament
 func (m *Manager) Start() {
 	// default to every 3 minutes
-	schedule := "@every 1m"
+	schedule := "@every 20s"
 	// create new cron instance for all our update loops
 	c := cron.New()
 
@@ -99,6 +101,7 @@ func (m *Manager) NewTournament(start, end time.Time, id string, csvData io.Read
 		EndTime:      end,
 		BestGamesNum: 4,
 		GameMode:     "br_brtrios",
+		TeamSize:     3,
 	}
 
 	newTournament := NewTournament(id, rules, teams)
@@ -110,7 +113,7 @@ func (m *Manager) NewTournament(start, end time.Time, id string, csvData io.Read
 
 	m.Tournaments.Set(newTournament.ID, newTournament)
 
-	schedule := "@every 1m"
+	schedule := "@every 20s"
 	// start updating every x scheduled minutes for the new tournament
 	err = m.cron.AddFunc(schedule, updateLoop(m.DB, &newTournament, m))
 	if err != nil {
@@ -227,46 +230,35 @@ func (m *Manager) GetTeamsByDivision(id, div string) ([]models.Team, error) {
 	return teams, nil
 }
 
-// Update will update the given tournament
+// Update will update all the teams in a tournament
 func (m *Manager) Update(t *models.Tournament) {
-	// instantiate 4 channels to use to pass the teams through,
-	// one for the starting teams, updated teams, players and one finalize channel
-	teamChan := make(chan *models.Team, len(t.Teams)*2)
-	updateChan := make(chan *models.Team, len(t.Teams)*2)
-	player := make(chan *models.Player, len(t.Teams)*4)
-	fin := make(chan bool, len(t.Teams)*4)
+	teamsChan := make(chan *models.Team, len(t.Teams)*2)
+	fin := make(chan int, len(t.Teams)*2)
 	client := proxy.NewNetClient() // sync http client
 
-	// instantiate 30 workers on each goroutine
-	// 30 is the max amount of workers before rate limiting from the API
-	for i := 0; i < 30; i++ {
-		go updateWorker(teamChan, player)
-		go playerWorker(player, client, fin)
-		go updateTeamStatsWorker(updateChan, fin)
+	// create workers
+	for i := 0; i < 50; i++ {
+		go worker(teamsChan, fin, t.Rules, client)
 	}
 
-	//  for each team in the tournament, pass them through the channel
+	// add all teams into the worker channel
 	for i := range t.Teams {
-		teamChan <- &t.Teams[i]
+		teamsChan <- &t.Teams[i]
 	}
 
-	// unload the finalize channel to know when the first channel finishes
-	// iterate for the total number of players in the tournament
-	for i := 0; i < (len(t.Teams) * 3); i++ {
-		<-fin
-	}
-
-	// go through the teams again and pass them through the update channel
-	// must be done after the finalize to make sure that the teams have been completely updated
-	for i := range t.Teams {
-		updateChan <- &t.Teams[i]
-	}
-
-	// unload the finalize channel one last time.
-	// iterate for the total number of teams in the tournament
 	for i := 0; i < len(t.Teams); i++ {
 		<-fin
 	}
 	// Sort the teams by the number of points they have
 	sort.Sort(models.ByPoints(t.Teams))
+}
+
+// worker will update all teams in the given channel - used in manager's update loop
+func worker(teams chan *models.Team, fin chan int, rules models.Rules, client *http.Client) {
+	// update every team
+	for team := range teams {
+		fmt.Println(team.Name)
+		team.Update(client, rules)
+		fin <- 1
+	}
 }

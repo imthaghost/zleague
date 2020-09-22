@@ -17,6 +17,7 @@ type Tournament struct {
 
 // Rules represents rules to do with the tournament
 type Rules struct {
+	TeamSize     int       `json:"team_size"`
 	StartTime    time.Time `json:"start_time"`     // Start time of tournament
 	EndTime      time.Time `json:"end_time"`       // End time of tournament
 	BestGamesNum int       `json:"best_games_num"` // Amount of games to calculate for "best"

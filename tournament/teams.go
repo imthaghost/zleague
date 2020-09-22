@@ -46,7 +46,7 @@ func createTeam(t models.TeamBasic, client *http.Client) models.Team {
 
 	// for every player that is on the team, create a player object and add them to the players list
 	for _, player := range t.Teammates {
-		p := CreatePlayer(player, t.Teamname, t.Start, t.End, client)
+		p := CreatePlayer(player, t.Teamname, client)
 		team.Players = append(team.Players, p)
 	}
 	return team
@@ -57,71 +57,5 @@ func teamWorker(basic chan models.TeamBasic, team chan models.Team, client *http
 	// checks the channel for team objects and passes created teams into the team channel
 	for t := range basic {
 		team <- createTeam(t, client)
-	}
-}
-
-// updates the team stats based off of the players stats
-func updateTeam(team *models.Team) *models.Team {
-	best := models.Best{}
-	total := models.Total{}
-
-	for i, player := range team.Players {
-		best.Kills += player.Best.Kills
-		best.Deaths += player.Best.Deaths
-		best.Headshots += player.Best.Headshots
-
-		// update kd cause its special and we dont like to divide by 0
-		if best.Deaths == 0 {
-			best.KD = float64(best.Kills)
-		} else {
-			best.KD = (float64(best.Kills) / float64(best.Deaths))
-		}
-
-		best.DamageDone += player.Best.DamageDone
-		best.Wins = player.Best.Wins
-		best.CombinedPoints = player.Best.PlacementPoints
-		best.PlacementPoints = player.Best.PlacementPoints
-
-		total.Kills += player.Total.Kills
-		total.Deaths += player.Total.Deaths
-		total.Headshots += player.Total.Headshots
-		if total.Deaths == 0 {
-			total.KD = float64(total.Kills)
-		} else {
-			total.KD = (float64(total.Kills) / float64(total.Deaths))
-		}
-		total.DamageDone += player.Total.DamageDone
-		total.Wins = player.Total.Wins
-		total.CombinedPoints = player.Total.CombinedPoints
-		team.Players[i] = player
-		total.GamesPlayed = player.Total.GamesPlayed
-	}
-
-	// Scores
-	best.CombinedPoints += best.Kills
-	total.CombinedPoints += total.Kills
-
-	team.Best = best
-	team.Total = total
-
-	return team
-}
-
-// updateWorker goroutine handles updating all of the players on the team
-func updateWorker(teamChan chan *models.Team, playerChan chan *models.Player) {
-	// check the channel for any teams passed in
-	for t := range teamChan {
-		for i := range t.Players {
-			playerChan <- &t.Players[i]
-		}
-	}
-}
-
-// updateTeamStatsWorker updates the stats on the team based off of the updated players
-func updateTeamStatsWorker(teamChan chan *models.Team, fin chan bool) {
-	// check the channel for any teams passed in
-	for team := range teamChan {
-		updateTeam(team)
-		fin <- true
 	}
 }
