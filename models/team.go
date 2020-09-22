@@ -39,6 +39,7 @@ func (a ByPoints) Less(i, j int) bool { return a[i].Best.CombinedPoints > a[j].B
 func (t *Team) Update(client *http.Client, rules Rules) {
 	// "histogram" for the matches that we have seen that we can then filter
 	seenMatches := map[string]Match{}
+
 	fmt.Println("starting update on ", t.Name)
 	// go through all players on the team and update their "all matches" on the player model
 	for i := range t.Players {
@@ -47,46 +48,31 @@ func (t *Team) Update(client *http.Client, rules Rules) {
 		if err != nil {
 			log.Println(err, "there was an error!")
 		}
-		// convert matches to match struct and store on the player
-		t.Players[i].getMatches(matches, &rules)
-		// working here
-		// shit happens
-		for j, m := range t.Players[i].Total.Games {
-			if m.Checked == true {
-				continue
-			}
-			t.Players[i].Total.Games[j].Checked = true
-			// update the histogram with all the matches the player has played
-			match, exists := seenMatches[m.ID]
-			// if the match exists in the map, update the stats of the match to reflect the teams total score
-			if exists {
-				match.Seen++
-				match.Kills += m.Kills
-				match.Deaths += m.Deaths
-				match.Headshots += m.Headshots
-				match.DamageDone += m.DamageDone
-				match.DamageTaken += m.DamageTaken
-				match.Score = m.Score
-				match.Checked = true
-
-				// catch divide by 0 error
-				if match.Deaths == 0 {
-					match.KD = float64(match.Kills)
-				} else {
-					match.KD = float64(match.Kills) / float64(match.Deaths)
-				}
-				seenMatches[m.ID] = match
-			} else {
-				// not seen we insert the match into the map
-				m.Seen++
-				m.Checked = true
-				seenMatches[m.ID] = m
-			}
-		}
+		// convert matches to match struct and store on the player, then update the matches
+		// in the seenMatches histogram, in order to store on the team properly
+		t.Players[i].getMatches(matches, &rules).updateMatches(&seenMatches)
 	}
+	// if the lenght of the seenMatches map is 0, then no new matches have been played, return
+	if len(seenMatches) == 0 {
+		return
+	}
+	// Update the total stats struct using the histogram while conforming to the rules
+	t.updateStats(&seenMatches, rules)
+}
 
+// Method to update the total and best stats on a team
+func (t *Team) updateStats(seenMatches *map[string]Match, rules Rules) {
+	// update the total stats on a team and then update the best stats.
+	t.updateTotal(seenMatches, rules).updateBest()
+	// go through the players and delete the matches that dont have the full team
+	// // update the players total stats
+	t.updatePlayersStats(seenMatches, rules)
+}
+
+// updateTotal will update the total points on a team
+func (t *Team) updateTotal(seenMatches *map[string]Match, rules Rules) *Team {
 	// loop through matches that we "collected"
-	for id, match := range seenMatches {
+	for _, match := range *seenMatches {
 		// if we have seen the match on every team
 		if match.Seen == rules.TeamSize {
 			// add the games that we have seen to the total games
@@ -108,21 +94,18 @@ func (t *Team) Update(client *http.Client, rules Rules) {
 			t.Total.PlacementPoints += match.Score
 			t.Total.GamesPlayed++
 
-		} else {
-			// if we have not seen it the right amount of times, yeet it
-			delete(seenMatches, id)
 		}
 	}
 	// update the combined points total after we loop through all the matches
 	t.Total.CombinedPoints = t.Total.PlacementPoints + t.Total.Kills
 
-	if len(seenMatches) == 0 {
-		return
-	}
-
 	// get the teams best matches
 	t.Best.Games = sortMatches(t.Total.Games, rules.BestGamesNum)
+	return t
+}
 
+// updateBest will update the best struct on a team
+func (t *Team) updateBest() {
 	// update the teams best stats
 	// initialize an empty best struct
 	best := Best{}
@@ -148,66 +131,14 @@ func (t *Team) Update(client *http.Client, rules Rules) {
 	best.Games = t.Best.Games
 	// reassign the best struct to the teams best
 	t.Best = best
+}
 
-	// go through the players and delete the matches that dont have the full team
-	// // update the players total stats
+// Updates the players best stats, based off of the matches stored on their struct
+func (t *Team) updatePlayersStats(seenMatches *map[string]Match, rules Rules) {
+	// for every player, call the updateBest method
+	// can add concurrency for efficiency here
 	for i := range t.Players {
-		totalMatches := []Match{}
-		var n int
-		for j, m := range t.Players[i].Total.Games {
-			match, exists := seenMatches[m.ID]
-			totalMatches = append(totalMatches, m)
-			if exists && match.Seen == rules.TeamSize {
-				t.Players[i].Total.Kills += m.Kills
-				t.Players[i].Total.DamageDone += m.DamageDone
-				t.Players[i].Total.DamageTaken += m.DamageTaken
-				t.Players[i].Total.Deaths += m.Deaths
-				t.Players[i].Total.PlacementPoints += m.Score
-
-				if t.Players[i].Total.Deaths == 0 {
-					t.Players[i].Total.KD = float64(t.Players[i].Total.Kills)
-				} else {
-					t.Players[i].Total.KD = (float64(t.Players[i].Total.Kills) / float64(t.Players[i].Total.Deaths))
-				}
-
-				t.Players[i].Total.Headshots += m.Headshots
-				t.Players[i].Total.GamesPlayed++
-
-				// check if player won the game
-				if m.Placement == 1 {
-					t.Players[i].Total.Wins++
-				}
-			} else if !exists {
-				totalMatches[j], totalMatches[0+n] = totalMatches[0+n], totalMatches[j]
-				n++
-			}
-		}
-		fmt.Printf("Deleting %d matches from %s total matches\n", n, t.Players[i].Username)
-		t.Players[i].Total.Games = totalMatches[n:]
-		t.Players[i].Total.CombinedPoints = t.Players[i].Total.Kills + t.Players[i].Total.PlacementPoints
-		t.Players[i].Best.Games = sortMatches(t.Players[i].Total.Games, rules.BestGamesNum)
-	}
-
-	// get the players best matches
-	// // update the players best stats
-	for i := range t.Players {
-		best := Best{}
-		for _, match := range t.Players[i].Best.Games {
-			if match.Placement == 1 {
-				best.Wins++
-			}
-
-			best.Kills += match.Kills
-			best.Deaths += match.Deaths
-			best.Headshots += match.Headshots
-			best.KD = (float64(best.Kills) / float64(best.Deaths))
-			best.DamageDone += match.DamageDone
-			best.DamageTaken += match.DamageTaken
-			best.PlacementPoints += match.Score
-		}
-		best.CombinedPoints = best.Kills + best.PlacementPoints
-		best.Games = t.Players[i].Best.Games
-		t.Players[i].Best = best
+		t.Players[i].updateStats(seenMatches, rules)
 	}
 }
 
