@@ -1,33 +1,23 @@
 package models
 
+import "time"
+
 // Team represents a single team in the tournament
 type Team struct {
 	Name     string   `json:"name"`
 	Division string   `json:"division"`
 	Players  []Player `json:"players"`
-	Best     struct {
-		CombinedPoints  int     `json:"combined_points"` // kills + placement
-		Games           []Match `json:"games"`           // best games
-		Kills           int     `json:"kills"`           // best x games total kills
-		Deaths          int     `json:"deaths"`          // best x games total deaths
-		KD              int     `json:"kd"`              // best x games overall KD
-		DamageDone      int     `json:"damage_done"`     // best x games total damage
-		DamageTaken     int     `json:"damage_taken"`
-		Headshots       int     `json:"headshots"`
-		Wins            int     `json:"wins"`
-		PlacementPoints int     `json:"placement"` // placement points only
-	} `json:"best"` // this struct holds the best x games as determined when a tournament is created
-	Total struct {
-		GamesPlayed int     `json:"games_played"`
-		Kills       int     `json:"kills"`
-		Deaths      int     `json:"deaths"`
-		Headshots   int     `json:"headshots"`
-		KD          float64 `json:"kd"`
-		DamageDone  int     `json:"damage_done"`
-		DamageTaken int     `json:"damage_taken"`
-		Wins        int     `json:"wins"`
-		Score       int     `json:"score"`
-	} `json:"total"` // this struct hold the totals for ALL the games
+	Best     Best     `json:"best"`  // this struct holds the best x games as determined when a tournament is created
+	Total    Total    `json:"total"` // this struct hold the totals for ALL the games
+}
+
+// TeamBasic holds a simple struct of what a team consists of.
+type TeamBasic struct {
+	Teamname  string    `json:"team_name"`
+	Teammates []string  `json:"teammates"`
+	Start     time.Time `json:"start_time"`
+	End       time.Time `json:"end_time"`
+	Division  string    `json:"division"`
 }
 
 // ByPoints allows us to sort all the teams

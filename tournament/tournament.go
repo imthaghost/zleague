@@ -1,18 +1,17 @@
 package tournament
 
 import (
-	"time"
+	"zleague/api/models"
 )
 
 // NewTournament returns a Tournament instance
 // teams should be a dictionary, where the key value is the team name, and the value is a string array of Activision ID's
-func NewTournament(t map[string]TeamBasic, id string, startTime, endTime time.Time) Tournament {
+func NewTournament(id string, rules models.Rules, t map[string]models.TeamBasic) models.Tournament {
 	teams := createTeams(t)
 
-	return Tournament{
-		ID:        id,
-		StartTime: startTime,
-		EndTime:   endTime,
-		Teams:     teams,
+	return models.Tournament{
+		ID:    id,
+		Teams: teams,
+		Rules: rules,
 	}
 }

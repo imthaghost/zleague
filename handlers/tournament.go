@@ -4,7 +4,7 @@ import (
 	"html"
 	"net/http"
 	"time"
-	"zleague/api/tournament"
+	"zleague/api/models"
 
 	"github.com/labstack/echo/v4"
 )
@@ -72,7 +72,7 @@ func (h *Handler) GetTournament(c echo.Context) error {
 func (h *Handler) UpdateTournament(c echo.Context) error {
 	id := html.EscapeString(c.Param("id"))
 
-	t := tournament.Tournament{}
+	t := models.Tournament{}
 	// bind the body to the tournament struct
 	if err := c.Bind(&t); err != nil {
 		return err

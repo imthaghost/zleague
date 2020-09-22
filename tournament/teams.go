@@ -7,12 +7,13 @@ import (
 )
 
 // creates all the teams concurrently
+func createTeams(t map[string]models.TeamBasic) []models.Team {
 	// client
 	c := proxy.NewNetClient()
 	var allTeams []models.Team
 
 	// instantiate two channels to pass the teams through
-	basicChan := make(chan TeamBasic, len(t))
+	basicChan := make(chan models.TeamBasic, len(t))
 	teamChan := make(chan models.Team, len(t))
 
 	// start 20 goroutines
@@ -34,27 +35,14 @@ import (
 }
 
 // CreateTeam instantiates a default Team
-func createTeam(t TeamBasic, client *http.Client) models.Team {
+func createTeam(t models.TeamBasic, client *http.Client) models.Team {
 	team := models.Team{
-		Teamname:    t.Teamname,
-		Kills:       0,
-		Deaths:      0,
-		Assists:     0,
-		Headshots:   0,
-		KD:          0.0,
-		DamageDone:  0,
-		GamesPlayed: 0,
-		Wins:        0,
-		Players:     []models.Player{},
-		Division:    t.Division,
+		Name:     t.Teamname,
+		Players:  []models.Player{},
+		Division: t.Division,
+		Best:     models.Best{},
+		Total:    models.Total{},
 	}
-	team.Total.TotalKills = 0
-	team.Total.TotalAssists = 0
-	team.Total.TotalDamage = 0
-	team.Total.TotalDeaths = 0
-	team.Total.TotalKD = 0
-	team.Total.TotalHeadshots = 0
-	team.Total.TotalWins = 0
 
 	// for every player that is on the team, create a player object and add them to the players list
 	for _, player := range t.Teammates {
@@ -65,7 +53,7 @@ func createTeam(t TeamBasic, client *http.Client) models.Team {
 }
 
 // worker to concurrently create all the teams
-func teamWorker(basic chan TeamBasic, team chan models.Team, client *http.Client) {
+func teamWorker(basic chan models.TeamBasic, team chan models.Team, client *http.Client) {
 	// checks the channel for team objects and passes created teams into the team channel
 	for t := range basic {
 		team <- createTeam(t, client)
@@ -74,53 +62,47 @@ func teamWorker(basic chan TeamBasic, team chan models.Team, client *http.Client
 
 // updates the team stats based off of the players stats
 func updateTeam(team *models.Team) *models.Team {
-	team.Kills = 0
-	team.DamageDone = 0
-	team.Deaths = 0
-	team.Assists = 0
-	team.Headshots = 0
-	team.KD = float64(0)
-	team.Wins = 0
-
-	team.Total.TotalKills = 0
-	team.Total.TotalDeaths = 0
-	team.Total.TotalAssists = 0
-	team.Total.TotalHeadshots = 0
-	team.Total.TotalDamage = 0
+	best := models.Best{}
+	total := models.Total{}
 
 	for i, player := range team.Players {
-		team.Kills += player.Kills
-		team.Deaths += player.Deaths
-		team.Assists += player.Assists
-		team.Headshots += player.Headshots
-		if team.Deaths == 0 {
-			team.KD = float64(team.Kills)
-		} else {
-			team.KD = (float64(team.Kills) / float64(team.Deaths))
-		}
-		team.DamageDone += player.DamageDone
-		team.Wins = player.Wins
-		team.TotalPoints = player.PlacementPoints
-		team.PlacementPoints = player.PlacementPoints
+		best.Kills += player.Best.Kills
+		best.Deaths += player.Best.Deaths
+		best.Headshots += player.Best.Headshots
 
-		team.Total.TotalKills += player.Total.TotalKills
-		team.Total.TotalDeaths += player.Total.TotalDeaths
-		team.Total.TotalAssists += player.Total.TotalAssists
-		team.Total.TotalHeadshots += player.Total.TotalHeadshots
-		if team.Total.TotalDeaths == 0 {
-			team.Total.TotalKD = float64(team.Total.TotalKills)
+		// update kd cause its special and we dont like to divide by 0
+		if best.Deaths == 0 {
+			best.KD = float64(best.Kills)
 		} else {
-			team.Total.TotalKD = (float64(team.Total.TotalKills) / float64(team.Total.TotalDeaths))
+			best.KD = (float64(best.Kills) / float64(best.Deaths))
 		}
-		team.Total.TotalDamage += player.Total.TotalDamage
-		team.Total.TotalWins = player.Total.TotalWins
-		team.Total.TotalScore = player.Total.TotalScore
+
+		best.DamageDone += player.Best.DamageDone
+		best.Wins = player.Best.Wins
+		best.CombinedPoints = player.Best.PlacementPoints
+		best.PlacementPoints = player.Best.PlacementPoints
+
+		total.Kills += player.Total.Kills
+		total.Deaths += player.Total.Deaths
+		total.Headshots += player.Total.Headshots
+		if total.Deaths == 0 {
+			total.KD = float64(total.Kills)
+		} else {
+			total.KD = (float64(total.Kills) / float64(total.Deaths))
+		}
+		total.DamageDone += player.Total.DamageDone
+		total.Wins = player.Total.Wins
+		total.CombinedPoints = player.Total.CombinedPoints
 		team.Players[i] = player
-		team.GamesPlayed = player.GamesPlayed
+		total.GamesPlayed = player.Total.GamesPlayed
 	}
+
 	// Scores
-	team.TotalPoints += team.Kills
-	team.Total.TotalScore += team.Total.TotalKills
+	best.CombinedPoints += best.Kills
+	total.CombinedPoints += total.Kills
+
+	team.Best = best
+	team.Total = total
 
 	return team
 }

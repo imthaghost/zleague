@@ -3,7 +3,6 @@ package models
 import (
 	"context"
 	"time"
-	"zleague/api/models"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -11,22 +10,17 @@ import (
 
 // Tournament struct holds the information needed to start a tournament.
 type Tournament struct {
-	ID    string        `json:"id"`    // ID single string to identify a single tournament
-	Teams []models.Team `json:"teams"` // A list of teams in the tournament
-	Rules struct {
-		StartTime    time.Time `json:"start_time"` // Start time of tournament
-		EndTime      time.Time `json:"end_time"`   // End time of tournament
-		BestGamesNum int       `json:"best_games_num"`
-	} `json:"rules"`
+	ID    string `json:"id"`    // ID single string to identify a single tournament
+	Teams []Team `json:"teams"` // A list of teams in the tournament
+	Rules Rules  `json:"rules"`
 }
 
-// TeamBasic holds a simple struct of what a team consists of.
-type TeamBasic struct {
-	Teamname  string    `json:"team_name"`
-	Teammates []string  `json:"teammates"`
-	Start     time.Time `json:"start_time"`
-	End       time.Time `json:"end_time"`
-	Division  string    `json:"division"`
+// Rules represents rules to do with the tournament
+type Rules struct {
+	StartTime    time.Time `json:"start_time"`     // Start time of tournament
+	EndTime      time.Time `json:"end_time"`       // End time of tournament
+	BestGamesNum int       `json:"best_games_num"` // Amount of games to calculate for "best"
+	GameMode     string    `json:"game_modes"`
 }
 
 // Insert will add a new tournament to the database
@@ -59,11 +53,11 @@ func (t *Tournament) UpdateInDB(db *mongo.Database) {
 }
 
 // GetTeams returns all teams from a single tournament
-func (t *Tournament) GetTeams(db *mongo.Database, id string) ([]models.Team, error) {
+func (t *Tournament) GetTeams(db *mongo.Database, id string) ([]Team, error) {
 	// get tournaments collection and find single tournament
 	err := db.Collection("tournaments").FindOne(context.TODO(), bson.M{"id": id}).Decode(&t)
 	if err != nil {
-		return []models.Team{}, err
+		return []Team{}, err
 	}
 
 	return t.Teams, nil
