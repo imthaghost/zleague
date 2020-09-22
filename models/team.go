@@ -6,18 +6,18 @@ import "time"
 type Team struct {
 	Name     string   `json:"name"`
 	Division string   `json:"division"`
-	Players  []Player `json:"players"`
 	Best     Best     `json:"best"`  // this struct holds the best x games as determined when a tournament is created
 	Total    Total    `json:"total"` // this struct hold the totals for ALL the games
+	Players  []Player `json:"players"`
 }
 
 // TeamBasic holds a simple struct of what a team consists of.
 type TeamBasic struct {
 	Teamname  string    `json:"team_name"`
-	Teammates []string  `json:"teammates"`
 	Start     time.Time `json:"start_time"`
 	End       time.Time `json:"end_time"`
 	Division  string    `json:"division"`
+	Teammates []string  `json:"teammates"`
 }
 
 // ByPoints allows us to sort all the teams

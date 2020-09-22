@@ -64,7 +64,7 @@ func NewManager(db *mongo.Database) *Manager {
 // Start will start a new tournament
 func (m *Manager) Start() {
 	// default to every 3 minutes
-	schedule := "@every 3m"
+	schedule := "@every 1m"
 	// create new cron instance for all our update loops
 	c := cron.New()
 
@@ -110,7 +110,7 @@ func (m *Manager) NewTournament(start, end time.Time, id string, csvData io.Read
 
 	m.Tournaments.Set(newTournament.ID, newTournament)
 
-	schedule := "@every 3m"
+	schedule := "@every 1m"
 	// start updating every x scheduled minutes for the new tournament
 	err = m.cron.AddFunc(schedule, updateLoop(m.DB, &newTournament, m))
 	if err != nil {
@@ -123,17 +123,17 @@ func (m *Manager) NewTournament(start, end time.Time, id string, csvData io.Read
 func updateLoop(db *mongo.Database, t *models.Tournament, m *Manager) func() {
 	return func() {
 		// if time is before the time of the tournament, do nothing
-		if time.Now().Before(t.Rules.StartTime) {
-			log.Println("Tournament has not started yet... not updating..")
-			return
-		}
+		// if time.Now().Before(t.Rules.StartTime) {
+		// 	log.Println("Tournament has not started yet... not updating..")
+		// 	return
+		// }
 
-		// we stop the cron job 30 minutes after the tournament endtime
-		if time.Now().After(t.Rules.EndTime.Add(time.Minute * time.Duration(30))) {
-			// graceful kill
-			log.Println("Not running update. Tournament updated.")
-			return
-		}
+		// // we stop the cron job 30 minutes after the tournament endtime
+		// if time.Now().After(t.Rules.EndTime.Add(time.Minute * time.Duration(30))) {
+		// 	// graceful kill
+		// 	log.Println("Not running update. Tournament updated.")
+		// 	return
+		// }
 
 		log.Println("Updating Tournament. ID: ", t.ID)
 
