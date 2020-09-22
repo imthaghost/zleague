@@ -62,28 +62,6 @@ func (player *Player) getMatches(matches cod.MatchData, rules *Rules) {
 
 		// append the matches into the player reference and into a newMatches array
 		player.Total.Games = append(player.Total.Games, newMatch)
-
-		// add stats to the players total
-		// player.Total.Kills += int(match.Segments[0].Stats.Kills.Value)
-		// player.Total.Assists += int(match.Segments[0].Stats.Assists.Value)
-		// player.Total.DamageDone += int(match.Segments[0].Stats.DamageDone.Value)
-		// player.Total.DamageTaken += int(match.Segments[0].Stats.DamageTaken.Value)
-		// player.Total.Deaths += int(match.Segments[0].Stats.Deaths.Value)
-
-		// if player.Total.Deaths == 0 {
-		// 	player.Total.KD = float64(player.Total.Kills)
-		// } else {
-		// 	player.Total.KD = (float64(player.Total.Kills) / float64(player.Total.Deaths))
-		// }
-
-		// player.Total.Headshots += int(match.Segments[0].Stats.Headshots.Value)
-		// player.Total.CombinedPoints += newMatch.Score
-		// player.Total.GamesPlayed++
-
-		// // check if player won the game
-		// if newMatch.Placement == 1 {
-		// 	player.Total.Wins++
-		// }
 	}
 
 	// gets run on first game
