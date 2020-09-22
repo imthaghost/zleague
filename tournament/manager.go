@@ -66,7 +66,7 @@ func NewManager(db *mongo.Database) *Manager {
 // Start will start a new tournament
 func (m *Manager) Start() {
 	// default to every 3 minutes
-	schedule := "@every 3m"
+	schedule := "@every 30s"
 	// create new cron instance for all our update loops
 	c := cron.New()
 
@@ -113,7 +113,7 @@ func (m *Manager) NewTournament(start, end time.Time, id string, csvData io.Read
 
 	m.Tournaments.Set(newTournament.ID, newTournament)
 
-	schedule := "@every 3m"
+	schedule := "@every 30s"
 	// start updating every x scheduled minutes for the new tournament
 	err = m.cron.AddFunc(schedule, updateLoop(m.DB, &newTournament, m))
 	if err != nil {
