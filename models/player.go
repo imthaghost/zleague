@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"zleague/api/cod"
 )
 
@@ -170,7 +169,6 @@ func (player *Player) updateStats(seenMatches *map[string]Match, rules Rules) {
 			n++
 		}
 	}
-	fmt.Printf("Deleting %d matches from %s total matches\n", n, player.Username)
 	// slice the players total games at n
 	player.Total.Games = player.Total.Games[n:]
 	player.Total.CombinedPoints = player.Total.Kills + player.Total.PlacementPoints
