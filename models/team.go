@@ -39,6 +39,7 @@ func (a ByPoints) Less(i, j int) bool { return a[i].Best.CombinedPoints > a[j].B
 func (t *Team) Update(client *http.Client, rules Rules) {
 	// "histogram" for the matches that we have seen that we can then filter
 	seenMatches := map[string]Match{}
+
 	fmt.Println("starting update on ", t.Name)
 	// go through all players on the team and update their "all matches" on the player model
 	for i := range t.Players {
@@ -47,45 +48,33 @@ func (t *Team) Update(client *http.Client, rules Rules) {
 		if err != nil {
 			log.Println(err, "there was an error!")
 		}
-		// convert matches to match struct and store on the player
-		t.Players[i].getMatches(matches, &rules)
-		// working here
-		// shit happens
-		for j, m := range t.Players[i].Total.Games {
-			t.Players[i].Total.Games[j].Checked = true
-			// update the histogram with all the matches the player has played
-			match, exists := seenMatches[m.ID]
-			// if the match exists in the map, update the stats of the match to reflect the teams total score
-			if exists {
-				match.Seen++
-				match.Kills += m.Kills
-				match.Deaths += m.Deaths
-				match.Headshots += m.Headshots
-				match.DamageDone += m.DamageDone
-				match.DamageTaken += m.DamageTaken
-				match.Score = m.Score
-
-				// catch divide by 0 error
-				if match.Deaths == 0 {
-					match.KD = float64(match.Kills)
-				} else {
-					match.KD = float64(match.Kills) / float64(match.Deaths)
-				}
-				seenMatches[m.ID] = match
-			} else {
-				// not seen we insert the match into the map
-				m.Seen++
-				seenMatches[m.ID] = m
-			}
-		}
+		// convert matches to match struct and store on the player, then update the matches
+		// in the seenMatches histogram, in order to store on the team properly
+		t.Players[i].getMatches(matches, &rules).updateMatches(&seenMatches)
 	}
+	// if the lenght of the seenMatches map is 0, then no new matches have been played, return
+	if len(seenMatches) == 0 {
+		return
+	}
+	// Update the total stats struct using the histogram while conforming to the rules
+	t.updateStats(&seenMatches, rules)
+}
 
-	// fmt.Printf("seen matches %+v", seenMatches)
+// Method to update the total and best stats on a team
+func (t *Team) updateStats(seenMatches *map[string]Match, rules Rules) {
+	// update the total stats on a team and then update the best stats.
+	t.updateTotal(seenMatches, rules).updateBest()
+	// go through the players and delete the matches that dont have the full team
+	// // update the players total stats
+	t.updatePlayersStats(seenMatches, rules)
+}
 
+// updateTotal will update the total points on a team
+func (t *Team) updateTotal(seenMatches *map[string]Match, rules Rules) *Team {
 	// loop through matches that we "collected"
-	for id, match := range seenMatches {
+	for _, match := range *seenMatches {
 		// if we have seen the match on every team
-		if match.Seen == rules.TeamSize && !match.Checked {
+		if match.Seen == rules.TeamSize {
 			// add the games that we have seen to the total games
 			t.Total.Games = append(t.Total.Games, match)
 			// update the teams total stats
@@ -105,9 +94,6 @@ func (t *Team) Update(client *http.Client, rules Rules) {
 			t.Total.PlacementPoints += match.Score
 			t.Total.GamesPlayed++
 
-		} else {
-			// if we have not seen it the right amount of times, yeet it
-			delete(seenMatches, id)
 		}
 	}
 	// update the combined points total after we loop through all the matches
@@ -115,12 +101,14 @@ func (t *Team) Update(client *http.Client, rules Rules) {
 
 	// get the teams best matches
 	t.Best.Games = sortMatches(t.Total.Games, rules.BestGamesNum)
-	fmt.Printf("saved %d best matches for team %s\n", len(t.Best.Games), t.Name)
+	return t
+}
 
+// updateBest will update the best struct on a team
+func (t *Team) updateBest() {
 	// update the teams best stats
 	// initialize an empty best struct
 	best := Best{}
-	fmt.Printf("")
 	for _, match := range t.Best.Games {
 		best.Kills += match.Kills
 		best.Deaths += match.Deaths
@@ -143,13 +131,15 @@ func (t *Team) Update(client *http.Client, rules Rules) {
 	best.Games = t.Best.Games
 	// reassign the best struct to the teams best
 	t.Best = best
-	fmt.Printf("updated all %d total matches stats for team %s with %d total kills\n", len(t.Total.Games), t.Name, t.Total.Kills)
+}
 
-	// go through the players and delete the matches that dont have the full team
-	// // update the players total stats
-
-	// get the players best matches
-	// // update the players best stats
+// Updates the players best stats, based off of the matches stored on their struct
+func (t *Team) updatePlayersStats(seenMatches *map[string]Match, rules Rules) {
+	// for every player, call the updateBest method
+	// can add concurrency for efficiency here
+	for i := range t.Players {
+		t.Players[i].updateStats(seenMatches, rules)
+	}
 }
 
 // sortMatches sorts the matches and returns the n best matches
