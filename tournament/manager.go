@@ -3,7 +3,6 @@ package tournament
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -238,7 +237,7 @@ func (m *Manager) Update(t *models.Tournament) {
 	client := proxy.NewNetClient() // sync http client
 
 	// create workers
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 100; i++ {
 		go worker(teamsChan, fin, t.Rules, client)
 	}
 
@@ -259,7 +258,6 @@ func (m *Manager) Update(t *models.Tournament) {
 func worker(teams chan *models.Team, fin chan int, rules models.Rules, client *http.Client) {
 	// update every team
 	for team := range teams {
-		fmt.Println(team.Name)
 		team.Update(client, rules)
 		fin <- 1
 	}

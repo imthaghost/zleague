@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"sort"
@@ -36,7 +35,6 @@ func (t *Team) Update(client *http.Client, rules Rules) {
 	// "histogram" for the matches that we have seen that we can then filter
 	seenMatches := map[string]Match{}
 
-	fmt.Println("starting update on ", t.Name)
 	// go through all players on the team and update their "all matches" on the player model
 	for i := range t.Players {
 		// get the player info from warzone cod package

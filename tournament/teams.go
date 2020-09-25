@@ -17,7 +17,7 @@ func createTeams(t map[string]models.TeamBasic) []models.Team {
 	teamChan := make(chan models.Team, len(t))
 
 	// start 20 goroutines
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 50; i++ {
 		go teamWorker(basicChan, teamChan, c)
 	}
 	// for every team in the map, add each to the channel

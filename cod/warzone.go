@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -106,6 +107,7 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 				// unmarshal json into match data struct
 				err = json.Unmarshal(body, &matchData)
 				if err != nil {
+					fmt.Println("Error demarshalling user: ", username)
 					return err
 				}
 				// Fully consume the body, which will also lead to us reading
@@ -129,8 +131,9 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 				// close
 				resp.Body.Close()
 				// return custom error
-				err := fmt.Errorf("NOT FOUND Respone code: %d", s)
-				return err
+				log.Println("User: ", username, "NOT FOUND Response code: %d", s)
+				// no error
+				return nil
 			} else {
 				err := fmt.Errorf("This was not handled: %d", s)
 				return err
