@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"zleague/api/cod"
 )
 
@@ -111,6 +112,7 @@ func (player *Player) updateMatches(seenMatches *map[string]Match) {
 		// if the match exists in the map, update the stats of the match to reflect the teams total score
 		if exists {
 			match.Seen++
+			player.Total.Games[j].Seen++
 			match.Kills += m.Kills
 			match.Deaths += m.Deaths
 			match.Headshots += m.Headshots
@@ -161,15 +163,16 @@ func (player *Player) updateStats(seenMatches *map[string]Match, rules Rules) {
 			if m.Placement == 1 {
 				player.Total.Wins++
 			}
-		} else if match.Seen != rules.BestGamesNum {
+		} else if match.Seen != rules.BestGamesNum && match.Seen != 0 {
 			// if the match hasn't been seen the appropriate number of times in the histogram
 			// swap the match with whatever match at the 0 + n index
-			player.Total.Games[j], player.Total.Games[0+n] = player.Total.Games[0+n], player.Total.Games[j]
+			player.Total.Games[j], player.Total.Games[n] = player.Total.Games[n], player.Total.Games[j]
 			// increment n
 			n++
 		}
 	}
 	// slice the players total games at n
+	fmt.Printf("deleting %d matches from %s\n", n, player.Username)
 	player.Total.Games = player.Total.Games[n:]
 	player.Total.CombinedPoints = player.Total.Kills + player.Total.PlacementPoints
 	// sort the matches and return a slice of the best matches according to the rules
