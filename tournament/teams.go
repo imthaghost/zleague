@@ -33,7 +33,6 @@ func createTeams(t map[string]models.TeamBasic) []models.Team {
 
 	// unload the teamChan into the allTeams array
 	for i := 0; i < len(t); i++ {
-		log.Println("I: ", i)
 		allTeams = append(allTeams, <-teamChan)
 	}
 
@@ -71,8 +70,6 @@ func createTeam(t models.TeamBasic, client *http.Client, blocked *cmap.Concurren
 		team.Players = append(team.Players, p)
 	}
 
-	log.Println("created team:", team.Name)
-
 	return team, nil
 }
 
@@ -84,8 +81,6 @@ func teamWorker(basic chan models.TeamBasic, team chan models.Team, client *http
 		// if error, do not add the team
 		if err != nil {
 			log.Println("error when creating team. not adding to tournament and blocking...")
-			// add empty team
-			// TODO: may have to handle this
 			team <- t
 			continue
 		}
