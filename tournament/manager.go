@@ -65,8 +65,8 @@ func NewManager(db *mongo.Database) *Manager {
 
 // Start will start a new tournament
 func (m *Manager) Start() {
-	// default to every 3 minutes
-	schedule := "@every 20s"
+	// default to every 5 minutes
+	schedule := "@every 5m"
 	// create new cron instance for all our update loops
 	c := cron.New()
 
@@ -90,20 +90,9 @@ func (m *Manager) Start() {
 }
 
 // NewTournament is designed to create a new tournament, and then save it to the struct and the database and return it
-func (m *Manager) NewTournament(start, end time.Time, id string, csvData io.Reader) models.Tournament {
+func (m *Manager) NewTournament(id string, rules models.Rules, csvData io.Reader) models.Tournament {
 	// create a new tournament
-	// TODO: Start the cron job for this tournament because it wont be started from the "start"
-	teams := CreateTeams(start, end, csvData)
-
-	// TODO: create rules in route
-	rules := models.Rules{
-		StartTime:    start,
-		EndTime:      end,
-		BestGamesNum: 4,
-		GameMode:     "br_brtrios",
-		TeamSize:     3,
-	}
-
+	teams := CreateTeams(csvData)
 	newTournament := NewTournament(id, rules, teams)
 
 	err := newTournament.Insert(m.DB)
@@ -111,9 +100,10 @@ func (m *Manager) NewTournament(start, end time.Time, id string, csvData io.Read
 		log.Println("manager: error creating new tournament in db: ", err)
 	}
 
+	// add the tournament to the manager
 	m.Tournaments.Set(newTournament.ID, newTournament)
 
-	schedule := "@every 20s"
+	schedule := "@every 5m"
 	// start updating every x scheduled minutes for the new tournament
 	err = m.cron.AddFunc(schedule, updateLoop(m.DB, &newTournament, m))
 	if err != nil {
@@ -126,25 +116,30 @@ func (m *Manager) NewTournament(start, end time.Time, id string, csvData io.Read
 func updateLoop(db *mongo.Database, t *models.Tournament, m *Manager) func() {
 	return func() {
 		// if time is before the time of the tournament, do nothing
-		// if time.Now().Before(t.Rules.StartTime) {
-		// 	log.Println("Tournament has not started yet... not updating..")
-		// 	return
-		// }
+		if time.Now().Before(t.Rules.StartTime) {
+			log.Println("Tournament has not started yet... not updating..")
+			return
+		}
 
-		// // we stop the cron job 30 minutes after the tournament endtime
-		// if time.Now().After(t.Rules.EndTime.Add(time.Minute * time.Duration(30))) {
-		// 	// graceful kill
-		// 	log.Println("Not running update. Tournament updated.")
-		// 	return
-		// }
+		// we stop the cron job 45 minutes after the tournament endtime
+		// TODO: remove manager from memory
+		// TODO: set active to false
+		// TODO: kill cron job
+		if time.Now().After(t.Rules.EndTime.Add(time.Minute * time.Duration(45))) {
+			// graceful kill
+			log.Println("Not running update. Tournament updated.")
+			return
+		}
 
 		log.Println("Updating Tournament. ID: ", t.ID)
 
-		// Update all the teams
+		// Update all the teams and save to database
 		m.Update(t)
 		t.UpdateInDB(db)
+
 		log.Println("Done Updating Tournament. ID: ", t.ID)
 
+		// update the tournament in memory
 		tourney := models.Tournament{}
 		tournament, err := tourney.GetTournament(db, t.ID)
 		if err != nil {
@@ -168,8 +163,14 @@ func (m *Manager) GetTournament(id string) (models.Tournament, error) {
 	return tourney.(models.Tournament), nil
 }
 
-// AllTournaments will return all current active tournaments
-func (m *Manager) AllTournaments() ([]models.Tournament, error) {
+// GetActiveTournaments will return all current active tournaments
+func (m *Manager) GetActiveTournaments() ([]models.Tournament, error) {
+	// TODO: logic
+	return []models.Tournament{}, nil
+}
+
+// GetAllTournaments will get all the tournaments in the database
+func (m *Manager) GetAllTournaments() ([]models.Tournament, error) {
 	// TODO: logic
 	return []models.Tournament{}, nil
 }
