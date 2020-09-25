@@ -8,6 +8,7 @@ type Best struct {
 	KD              float64 `json:"kd"`          // best x games overall KD
 	DamageDone      int     `json:"damage_done"` // best x games total damage
 	DamageTaken     int     `json:"damage_taken"`
+	WallBangs       int     `json:"wall_bangs"`
 	Wins            int     `json:"wins"`
 	PlacementPoints int     `json:"placement"`       // placement points only
 	CombinedPoints  int     `json:"combined_points"` // kills + placement
@@ -22,6 +23,7 @@ type Total struct {
 	KD              float64 `json:"kd"`
 	DamageDone      int     `json:"damage_done"`
 	DamageTaken     int     `json:"damage_taken"`
+	WallBangs       int     `json:"wall_bangs"`
 	Wins            int     `json:"wins"`
 	PlacementPoints int     `json:"placement_points"`
 	CombinedPoints  int     `json:"combined_points"`

@@ -57,6 +57,7 @@ func (player *Player) getMatches(matches cod.MatchData, rules *Rules) *Player {
 			DamageDone:  int(match.Segments[0].Stats.DamageDone.Value),
 			DamageTaken: int(match.Segments[0].Stats.DamageTaken.Value),
 			Score:       Scoreboard[match.Segments[0].Stats.Placement.Value],
+			WallBangs:   int(match.Segments[0].Stats.WallBangs.Value),
 			Checked:     false,
 		}
 
@@ -89,6 +90,7 @@ func (player *Player) updateBest() {
 		best.KD = (float64(best.Kills) / float64(best.Deaths))
 		best.DamageDone += match.DamageDone
 		best.DamageTaken += match.DamageTaken
+		best.WallBangs += match.WallBangs
 		best.PlacementPoints += match.Score
 	}
 	best.CombinedPoints = best.Kills + best.PlacementPoints
@@ -116,6 +118,7 @@ func (player *Player) updateMatches(seenMatches *map[string]Match) {
 			match.Headshots += m.Headshots
 			match.DamageDone += m.DamageDone
 			match.DamageTaken += m.DamageTaken
+			match.WallBangs += m.WallBangs
 			match.Score = m.Score
 			match.Checked = true
 
@@ -147,6 +150,7 @@ func (player *Player) updateStats(seenMatches *map[string]Match, rules Rules) {
 			player.Total.Kills += m.Kills
 			player.Total.DamageDone += m.DamageDone
 			player.Total.DamageTaken += m.DamageTaken
+			player.Total.WallBangs += m.WallBangs
 			player.Total.Deaths += m.Deaths
 			player.Total.PlacementPoints += m.Score
 			player.Total.Games[j].Seen = match.Seen

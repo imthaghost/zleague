@@ -19,9 +19,9 @@ type Team struct {
 
 // TeamBasic holds a simple struct of what a team consists of.
 type TeamBasic struct {
-	Teamname  string    `json:"team_name"`
-	Division  string    `json:"division"`
-	Teammates []string  `json:"teammates"`
+	Teamname  string   `json:"team_name"`
+	Division  string   `json:"division"`
+	Teammates []string `json:"teammates"`
 }
 
 // ByPoints allows us to sort all the teams
@@ -85,6 +85,7 @@ func (t *Team) updateTotal(seenMatches *map[string]Match, rules Rules) *Team {
 			}
 			t.Total.DamageDone += match.DamageDone
 			t.Total.DamageTaken += match.DamageTaken
+			t.Total.WallBangs += match.WallBangs
 			if match.Placement == 1 {
 				t.Total.Wins++
 			}
@@ -112,6 +113,7 @@ func (t *Team) updateBest() {
 		best.Headshots += match.Headshots
 		best.DamageDone += match.DamageDone
 		best.DamageTaken += match.DamageTaken
+		best.WallBangs += match.WallBangs
 		if match.Placement == 1 {
 			best.Wins++
 		}

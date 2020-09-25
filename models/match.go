@@ -17,6 +17,7 @@ type Match struct {
 	Placement   int       `json:"placement"`
 	DamageDone  int       `json:"damage_done"`
 	DamageTaken int       `json:"damage_taken"`
+	WallBangs   int       `json:"wall_bangs"`
 	Score       int       `json:"score"`
 	Seen        int       `json:"-"`
 	Checked     bool      `json:"-"`
