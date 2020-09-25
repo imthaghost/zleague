@@ -238,7 +238,7 @@ func GetStatData(username string, client *http.Client) (StatData, error) {
 
 	// this should never be called
 	if retryErr != nil {
-		return StatData{}, err
+		return StatData{}, retryErr
 	}
 
 	return statData, nil

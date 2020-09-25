@@ -1,18 +1,17 @@
 package tournament
 
 import (
-	"log"
+	"errors"
 	"net/http"
 	"zleague/api/cod"
 	"zleague/api/models"
 )
 
 // CreatePlayer creates a default Player instance
-func CreatePlayer(username, teamname string, client *http.Client) models.Player {
+func CreatePlayer(username string, client *http.Client) (models.Player, error) {
 	stats, err := cod.GetStatData(username, client)
 	if err != nil {
-		log.Println(err)
-		return models.Player{}
+		return models.Player{}, errors.New("failed to get stats for user")
 	}
 
 	best := models.Best{}
@@ -30,10 +29,10 @@ func CreatePlayer(username, teamname string, client *http.Client) models.Player 
 		Total:    total,
 	}
 
-	return player
+	return player, nil
 }
 
-// updates the stats of the player based off of the matches they have stored
+// updatePlayer updates the stats of the player based off of the matches they have stored
 func updatePlayer(player *models.Player) {
 	// resets the stats of the player to zero
 	best := models.Best{}
@@ -48,7 +47,7 @@ func updatePlayer(player *models.Player) {
 		best.Kills += match.Kills
 		best.Deaths += match.Deaths
 		best.Headshots += match.Headshots
-		best.KD = (float64(best.Kills) / float64(best.Deaths))
+		best.KD = float64(best.Kills) / float64(best.Deaths)
 		best.DamageDone += match.DamageDone
 		best.PlacementPoints += match.Score
 	}
