@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"html"
 	"net/http"
+	"strings"
 	"zleague/api/cod"
 
 	"github.com/labstack/echo/v4"
@@ -10,10 +10,13 @@ import (
 
 // Verify is a route that takes a user ID and returns if that user id is a valid Activision ID
 func (h *Handler) Verify(c echo.Context) error {
-	id := html.EscapeString(c.Param("id"))
+	id := c.Param("id")
+
+	// replace the # with %23 for tracker api
+	changed := strings.Replace(id, "#", "%23", 1)
 
 	// see if the given id is a valid activision id
-	valid := cod.IsValid(id)
+	valid := cod.IsValid(changed)
 	exist := map[string]bool{"exist": valid}
 
 	return c.JSON(http.StatusOK, exist)
