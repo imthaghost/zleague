@@ -50,7 +50,8 @@ func (t *Team) Update(client *http.Client, rules Rules) {
 		}
 		// convert matches to match struct and store on the player, then update the matches
 		// in the seenMatches histogram, in order to store on the team properly
-		t.Players[i].getMatches(matches, &rules).updateMatches(&seenMatches)
+		t.Players[i].getMatches(matches, &rules)
+		t.Players[i].updateMatches(&seenMatches)
 	}
 	// if the lenght of the seenMatches map is 0, then no new matches have been played, return
 	if len(seenMatches) == 0 {

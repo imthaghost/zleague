@@ -251,6 +251,7 @@ func (m *Manager) Update(t *models.Tournament) {
 	}
 	// Sort the teams by the number of points they have
 	sort.Sort(models.ByPoints(t.Teams))
+	// t.Rules.EndTime = t.Rules.EndTime.Add(5 * time.Minute)
 }
 
 // worker will update all teams in the given channel - used in manager's update loop

@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"zleague/api/cod"
 )
 
@@ -112,7 +111,6 @@ func (player *Player) updateMatches(seenMatches *map[string]Match) {
 		// if the match exists in the map, update the stats of the match to reflect the teams total score
 		if exists {
 			match.Seen++
-			player.Total.Games[j].Seen++
 			match.Kills += m.Kills
 			match.Deaths += m.Deaths
 			match.Headshots += m.Headshots
@@ -140,16 +138,19 @@ func (player *Player) updateMatches(seenMatches *map[string]Match) {
 // updateStats updates all the stats on a player
 func (player *Player) updateStats(seenMatches *map[string]Match, rules Rules) {
 	// instantiate an empty variable to store the number of matches to be deleted
-	var n int
+	// var n int
 	for j, m := range player.Total.Games {
 		match, exists := (*seenMatches)[m.ID]
+		// fmt.Println(exists, m.Seen, match.Seen, rules.TeamSize)
 		if exists && match.Seen == rules.TeamSize {
+			// fmt.Println(player.Total.Games[j])
 			player.Total.Kills += m.Kills
 			player.Total.DamageDone += m.DamageDone
 			player.Total.DamageTaken += m.DamageTaken
 			player.Total.Deaths += m.Deaths
 			player.Total.PlacementPoints += m.Score
-
+			player.Total.Games[j].Seen = match.Seen
+			// fmt.Println(player.Total.Games[j])
 			if player.Total.Deaths == 0 {
 				player.Total.KD = float64(player.Total.Kills)
 			} else {
@@ -163,17 +164,19 @@ func (player *Player) updateStats(seenMatches *map[string]Match, rules Rules) {
 			if m.Placement == 1 {
 				player.Total.Wins++
 			}
-		} else if match.Seen != rules.BestGamesNum && match.Seen != 0 {
-			// if the match hasn't been seen the appropriate number of times in the histogram
-			// swap the match with whatever match at the 0 + n index
-			player.Total.Games[j], player.Total.Games[n] = player.Total.Games[n], player.Total.Games[j]
-			// increment n
-			n++
+		} else if match.Seen != rules.TeamSize && exists {
+			// fmt.Println(match)
+			// fmt.Println(m)
+			// // if the match hasn't been seen the appropriate number of times in the histogram
+			// // swap the match with whatever match at the 0 + n index
+			// player.Total.Games[j], player.Total.Games[n] = player.Total.Games[n], player.Total.Games[j]
+			// // increment n
+			// n++
 		}
 	}
 	// slice the players total games at n
-	fmt.Printf("deleting %d matches from %s\n", n, player.Username)
-	player.Total.Games = player.Total.Games[n:]
+	// fmt.Printf("deleting %d matches from %s\n", n, player.Username)
+	// player.Total.Games = player.Total.Games[n:]
 	player.Total.CombinedPoints = player.Total.Kills + player.Total.PlacementPoints
 	// sort the matches and return a slice of the best matches according to the rules
 	player.Best.Games = sortMatches(player.Total.Games, rules.BestGamesNum)
