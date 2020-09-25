@@ -5,8 +5,6 @@ import (
 	"log"
 	"net/http"
 	"sort"
-	"time"
-
 	"zleague/api/cod"
 )
 
@@ -22,8 +20,6 @@ type Team struct {
 // TeamBasic holds a simple struct of what a team consists of.
 type TeamBasic struct {
 	Teamname  string    `json:"team_name"`
-	Start     time.Time `json:"start_time"`
-	End       time.Time `json:"end_time"`
 	Division  string    `json:"division"`
 	Teammates []string  `json:"teammates"`
 }
@@ -85,7 +81,7 @@ func (t *Team) updateTotal(seenMatches *map[string]Match, rules Rules) *Team {
 			if t.Total.Deaths == 0 {
 				t.Total.KD = float64(t.Total.Kills)
 			} else {
-				t.Total.KD = (float64(t.Total.Kills) / float64(t.Total.Deaths))
+				t.Total.KD = float64(t.Total.Kills) / float64(t.Total.Deaths)
 			}
 			t.Total.DamageDone += match.DamageDone
 			t.Total.DamageTaken += match.DamageTaken
@@ -125,7 +121,7 @@ func (t *Team) updateBest() {
 	if best.Deaths == 0 {
 		best.KD = float64(best.Kills)
 	} else {
-		best.KD = (float64(best.Kills) / float64(best.Deaths))
+		best.KD = float64(best.Kills) / float64(best.Deaths)
 	}
 	best.CombinedPoints = best.PlacementPoints + best.Kills
 	// reassign the best.Games to the new best struct

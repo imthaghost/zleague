@@ -3,5 +3,7 @@ api
 .git
 zleague-api
 .DS_Store
+.idea
+.vscode
 
 database/

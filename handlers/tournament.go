@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"html"
 	"net/http"
 	"time"
@@ -11,15 +12,17 @@ import (
 
 // TournamentPayload represents the incoming payload to create a new tournament
 type TournamentPayload struct {
-	ID        string `json:"id" form:"id"`
-	Start     string `json:"start" form:"start"`
-	End       string `json:"end" form:"end"`
-	BestGames int    `json:"best_games" form:"best_games"`
+	ID        string `json:"id" form:"id"` // the "name" of the tournament
+	Start     string `json:"start" form:"start"` // when you want the tournament to start recording stats
+	End       string `json:"end" form:"end"` // when you want it to stop recording stats
+	BestGames int    `json:"best_games" form:"best_games"` // how many games do we want to calculate the "best" for
+	GameMode string `json:"game_mode" form:"game_mode"` // the game mode that we are tracking... duos.. trios.. etc
+	TeamSize int `json:"team_size" form:"team_size"` // the size of a given team
 }
 
 // CreateTournament will start a new tournament.
 // TODO: Allow the ability to start and end tournaments at any time, as well as be able to set best x games :)
-func (h *Handler) CreateTournament(c echo.Context) (err error) {
+func (h *Handler) CreateTournament(c echo.Context) error {
 	tournamentPayload := TournamentPayload{}
 
 	// csv file
@@ -33,27 +36,23 @@ func (h *Handler) CreateTournament(c echo.Context) (err error) {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Tournament Payload")
 	}
 
-	// parse the start time from the json payload
-	start, err := time.Parse(time.RFC3339, tournamentPayload.Start)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Start Time")
-	}
-	// parse the end time from the json payload
-	end, err := time.Parse(time.RFC3339, tournamentPayload.End)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid End Time")
-	}
-
 	csvData, err := csvFormFile.Open()
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Error Opening CSV")
 	}
 
-	// create a new tournament
-	tournament := h.manager.NewTournament(start, end, tournamentPayload.ID, csvData)
+	// create tournament rules
+	rules, err := createRulesFromPayload(tournamentPayload)
+	if err != nil {
+		return err
+	}
+
+	// create a new tournament with the given rules
+	tournament := h.manager.NewTournament(tournamentPayload.ID, rules, csvData)
 
 	return c.JSON(http.StatusOK, tournament)
 }
+
 
 // GetTournament will return a tournament that is in the database
 func (h *Handler) GetTournament(c echo.Context) error {
@@ -83,4 +82,52 @@ func (h *Handler) UpdateTournament(c echo.Context) error {
 	// TODO: Finish this when we get a response back from Omar
 
 	return nil
+}
+
+// create rules from the tournament payload to clean up the function
+func createRulesFromPayload(tournamentPayload TournamentPayload) (models.Rules, error) {
+	// parse the start time from the json payload
+	start, err := time.Parse(time.RFC3339, tournamentPayload.Start)
+	if err != nil {
+		return models.Rules{}, errors.New("could not parse start time")
+	}
+	// parse the end time from the json payload
+	end, err := time.Parse(time.RFC3339, tournamentPayload.End)
+	if err != nil {
+		return models.Rules{}, errors.New("could not parse end time")
+	}
+
+	// default to trios
+	var mode string
+	if tournamentPayload.GameMode == "" {
+		mode = "br_brtrios"
+	} else {
+		mode = tournamentPayload.GameMode
+	}
+
+	// default to team size of 3
+	var teamSize int
+	if tournamentPayload.TeamSize == 0 {
+		teamSize = 3
+	} else {
+		teamSize = tournamentPayload.TeamSize
+	}
+
+	// default to best 4 games
+	var bestGames int
+	if tournamentPayload.BestGames == 0 {
+		bestGames = 4
+	} else {
+		bestGames = tournamentPayload.BestGames
+	}
+
+	rules := models.Rules{
+		StartTime: start,
+		EndTime: end,
+		TeamSize: teamSize,
+		BestGamesNum: bestGames,
+		GameMode: mode,
+	}
+
+	return rules, nil
 }

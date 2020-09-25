@@ -11,7 +11,8 @@ import (
 // Tournament struct holds the information needed to start a tournament.
 type Tournament struct {
 	ID    string `json:"id"` // ID single string to identify a single tournament
-	Rules Rules  `json:"rules"`
+	Active bool `json:"active"` // If the tournament is active
+	Rules Rules  `json:"rules"` // tournament rules
 	Teams []Team `json:"teams"` // A list of teams in the tournament
 }
 
