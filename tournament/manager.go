@@ -124,7 +124,7 @@ func updateLoop(db *mongo.Database, t *models.Tournament, m *Manager) func() {
 		// TODO: remove manager from memory
 		// TODO: set active to false
 		// TODO: kill cron job
-		if time.Now().After(t.Rules.EndTime.Add(time.Minute * time.Duration(45))) {
+		if time.Now().After(t.Rules.EndTime.Add(time.Minute * time.Duration(100))) {
 			// graceful kill
 			log.Println("Not running update. Tournament updated.")
 			return
