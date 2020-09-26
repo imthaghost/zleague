@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"html"
+	"log"
 	"net/http"
 	"time"
 	"zleague/api/models"
@@ -21,7 +22,6 @@ type TournamentPayload struct {
 }
 
 // CreateTournament will start a new tournament.
-// TODO: Allow the ability to start and end tournaments at any time, as well as be able to set best x games :)
 func (h *Handler) CreateTournament(c echo.Context) error {
 	tournamentPayload := TournamentPayload{}
 
@@ -65,6 +65,23 @@ func (h *Handler) GetTournament(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, t)
+}
+
+// TournamentExists will return if a tournament exists. We only do this because we do not want to return the entire tournament
+func (h *Handler) TournamentExists(c echo.Context) error {
+	id := html.EscapeString(c.Param("id"))
+
+	for k, v := range h.manager.Tournaments.Items() {
+		log.Println("key: ", k)
+		log.Println("val: ", v)
+		if id == k {
+			// if we find the k (tournament name/id) then return exists
+			return c.JSON(200, "exists")
+		}
+	}
+
+	// 404 if does not exist
+	return c.JSON(404, "does not eixst")
 }
 
 // UpdateTournament will update the tournament with the given body

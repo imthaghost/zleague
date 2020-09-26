@@ -27,6 +27,7 @@ func (s *Server) Routes() {
 
 	/* Unprotected Tournament Routes */
 	s.e.GET("/tournament/:id", r.GetTournament)
+	s.e.GET("/tournament/:id/exists", r.TournamentExists)
 
 	/* Unprotected Team Routes */
 	s.e.GET("/tournament/:id/team/:teamname", r.GetTeam)  // get a team by name
