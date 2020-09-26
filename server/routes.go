@@ -16,7 +16,7 @@ func (s *Server) Routes() {
 	s.e.Use(middleware.Logger())
 	// gzip
 	s.e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
-		Level: 6,
+		Level: 9,
 	}))
 	// CORS
 	s.e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
