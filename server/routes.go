@@ -57,4 +57,6 @@ func (s *Server) Routes() {
 	protected.POST("/tournament", r.CreateTournament)
 	// add a team to an existing tournament (protected)
 	protected.POST("/tournament/team", r.CreateTeam)
+	// delete a route (protected)
+	protected.POST("/tournament/:id/delete", r.DeleteTournament)
 }

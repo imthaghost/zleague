@@ -92,3 +92,18 @@ func (t *Tournament) GetTournament(db *mongo.Database, id string) (Tournament, e
 
 	return *t, nil
 }
+
+func (t *Tournament) DeleteTournament(db *mongo.Database, id string) error {
+	filter := bson.M{
+		"id": id,
+	}
+
+	collection := db.Collection("tournaments")
+	_, err := collection.DeleteOne(context.TODO(), filter)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
