@@ -3,7 +3,6 @@ package handlers
 import (
 	"errors"
 	"html"
-	"log"
 	"net/http"
 	"time"
 	"zleague/api/models"
@@ -71,7 +70,7 @@ func (h *Handler) GetTournament(c echo.Context) error {
 func (h *Handler) TournamentExists(c echo.Context) error {
 	id := html.EscapeString(c.Param("id"))
 
-	for k, v := range h.manager.Tournaments.Items() {
+	for k := range h.manager.Tournaments.Items() {
 		if id == k {
 			// if we find the k (tournament name/id) then return exists
 			return c.JSON(200, "exists")
