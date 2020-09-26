@@ -384,7 +384,7 @@ type MatchData struct {
 						Category        string      `json:"category"`
 						Metadata        struct {
 						} `json:"metadata"`
-						Value        float64 `json:"value"`
+						Value        interface{} `json:"value"`
 						DisplayValue string  `json:"displayValue"`
 						DisplayType  string  `json:"displayType"`
 					} `json:"damageDonePerMinute"`

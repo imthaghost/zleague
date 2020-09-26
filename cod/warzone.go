@@ -106,6 +106,7 @@ func GetMatchData(username string, client *http.Client) (MatchData, error) {
 				}
 				// unmarshal json into match data struct
 				err = json.Unmarshal(body, &matchData)
+				// match data is special
 				if err != nil {
 					fmt.Println("Error demarshalling user: ", username)
 					return err
