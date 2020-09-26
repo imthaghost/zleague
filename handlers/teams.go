@@ -1,13 +1,10 @@
 package handlers
 
 import (
-	"encoding/csv"
 	cmap "github.com/orcaman/concurrent-map"
 	"html"
-	"log"
 	"net/http"
 	"strings"
-	"zleague/api/cod"
 	"zleague/api/models"
 	"zleague/api/proxy"
 	"zleague/api/tournament"
@@ -40,6 +37,7 @@ func (h *Handler) GetTeam(c echo.Context) error {
 	return c.JSON(http.StatusOK, team)
 }
 
+// createTeamPayload will create a new team in the database
 type createTeamPayload struct {
 	TournamentID string `json:"tournament_id"` // id of the tournament oadd the team to
 	Name string `json:"name"` // the name of the team
@@ -47,6 +45,7 @@ type createTeamPayload struct {
 	Players []string `json:"players"`
 }
 
+// CreateTeam will will add a team to an already existing tournament
 func (h *Handler) CreateTeam(c echo.Context) error {
 	payload := createTeamPayload{}
 	if err := c.Bind(&payload); err != nil {
@@ -91,52 +90,4 @@ func (h *Handler) GetTeamsByDivision(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, teams)
-}
-
-type invalidTeams struct {
-	Invalid []string `json:"invalid"`
-}
-
-// CheckTeams returns a map of team and player who are invalid
-// TODO move logic out of route
-func (h *Handler) CheckTeams(c echo.Context) error {
-	teamMap := map[string]invalidTeams{}
-	// csv file
-	csvFormFile, err := c.FormFile("csv")
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid CSV Uploaded")
-	}
-
-	csvData, err := csvFormFile.Open()
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Error Opening CSV")
-	}
-
-	lines, err := csv.NewReader(csvData).ReadAll()
-	if err != nil {
-		log.Println("cannot read from given csv")
-	}
-
-	for _, line := range lines {
-		team := line[1]
-		player := strings.Replace(line[2], "#", "%23", -1)
-		if !cod.IsValid(player) {
-			// teamname is present in map
-			if _, ok := teamMap[team]; ok {
-				t := teamMap[team]                    // reference map
-				t.Invalid = append(t.Invalid, player) // append player to appropriate team
-				teamMap[team] = t
-			} else { // not present in map
-				p := invalidTeams{}                   // create new struct reference
-				p.Invalid = append(p.Invalid, player) // append teammate
-				teamMap[team] = p                     // create key value pair
-			}
-		}
-	}
-	// empty map
-	if len(teamMap) == 0 {
-		return c.JSON(http.StatusOK, nil)
-	}
-
-	return c.JSON(http.StatusOK, teamMap)
 }

@@ -22,7 +22,7 @@ type Rules struct {
 	StartTime    time.Time `json:"start_time"`     // Start time of tournament
 	EndTime      time.Time `json:"end_time"`       // End time of tournament
 	BestGamesNum int       `json:"best_games_num"` // Amount of games to calculate for "best"
-	GameMode     string    `json:"game_modes"`
+	GameMode     string    `json:"game_modes"` // the game mode that we want to track
 }
 
 // Insert will add a new tournament to the database
@@ -65,6 +65,7 @@ func (t *Tournament) GetTeams(db *mongo.Database, id string) ([]Team, error) {
 	return t.Teams, nil
 }
 
+// AddTeam will add a team to a currently running tournament.
 func (t *Tournament) AddTeam(db *mongo.Database, team Team) {
 	collection := db.Collection("tournaments")
 
