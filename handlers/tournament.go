@@ -73,12 +73,14 @@ func (h *Handler) TournamentExists(c echo.Context) error {
 	for k := range h.manager.Tournaments.Items() {
 		if id == k {
 			// if we find the k (tournament name/id) then return exists
-			return c.JSON(200, "exists")
+			r := map[string]bool{"exists": true}
+			return c.JSON(200, r)
 		}
 	}
 
 	// 404 if does not exist
-	return c.JSON(404, "does not eixst")
+	r := map[string]bool{"exists": false}
+	return c.JSON(404, r)
 }
 
 // UpdateTournament will update the tournament with the given body
