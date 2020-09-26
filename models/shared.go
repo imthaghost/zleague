@@ -5,7 +5,7 @@ type Best struct {
 	Kills           int     `json:"kills"`  // best x games total kills
 	Deaths          int     `json:"deaths"` // best x games total deaths
 	Headshots       int     `json:"headshots"`
-	KD              float64 `json:"kd"`          // best x games overall KD
+	KD              float64 `json:"-"`          // best x games overall KD
 	DamageDone      int     `json:"damage_done"` // best x games total damage
 	DamageTaken     int     `json:"damage_taken"`
 	WallBangs       int     `json:"wall_bangs"`
@@ -20,7 +20,7 @@ type Total struct {
 	Kills           int     `json:"kills"`     // all kills in all games during the tournament
 	Deaths          int     `json:"deaths"`    // all deaths in all games during the tournament
 	Headshots       int     `json:"headshots"` // all headshots in all games during the tournametn
-	KD              float64 `json:"kd"`
+	KD              float64 `json:"-"`
 	DamageDone      int     `json:"damage_done"`
 	DamageTaken     int     `json:"damage_taken"`
 	WallBangs       int     `json:"wall_bangs"`
