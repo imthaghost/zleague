@@ -83,7 +83,6 @@ func (t *Team) updateTotal(seenMatches *map[string]Match, rules Rules) *Team {
 			}
 			t.Total.DamageDone += match.DamageDone
 			t.Total.DamageTaken += match.DamageTaken
-			t.Total.WallBangs += match.WallBangs
 			if match.Placement == 1 {
 				t.Total.Wins++
 			}
@@ -111,7 +110,6 @@ func (t *Team) updateBest() {
 		best.Headshots += match.Headshots
 		best.DamageDone += match.DamageDone
 		best.DamageTaken += match.DamageTaken
-		best.WallBangs += match.WallBangs
 		if match.Placement == 1 {
 			best.Wins++
 		}
