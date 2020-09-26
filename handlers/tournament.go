@@ -72,8 +72,6 @@ func (h *Handler) TournamentExists(c echo.Context) error {
 	id := html.EscapeString(c.Param("id"))
 
 	for k, v := range h.manager.Tournaments.Items() {
-		log.Println("key: ", k)
-		log.Println("val: ", v)
 		if id == k {
 			// if we find the k (tournament name/id) then return exists
 			return c.JSON(200, "exists")
