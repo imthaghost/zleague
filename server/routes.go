@@ -14,6 +14,10 @@ import (
 func (s *Server) Routes() {
 	// Logging
 	s.e.Use(middleware.Logger())
+	// gzip
+	s.e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+		Level: 6,
+	}))
 	// CORS
 	s.e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
