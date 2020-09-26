@@ -51,6 +51,9 @@ func (s *Server) Routes() {
 	// create a new tournament (protected)
 	protected.POST("/tournament", r.CreateTournament)
 
+	// add a team to an existing tournament (protected)
+	protected.POST("/tournament/team", r.CreateTeam)
+
 	// Update a tournament (protected)
 
 	// Update Team Data (protected)

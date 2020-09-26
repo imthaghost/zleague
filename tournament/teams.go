@@ -49,7 +49,7 @@ func createTeams(t map[string]models.TeamBasic) []models.Team {
 }
 
 // CreateTeam instantiates a default Team
-func createTeam(t models.TeamBasic, client *http.Client, blocked *cmap.ConcurrentMap) (models.Team, error) {
+func CreateTeam(t models.TeamBasic, client *http.Client, blocked *cmap.ConcurrentMap) (models.Team, error) {
 	team := models.Team{
 		Name:     t.Teamname,
 		Players:  []models.Player{},
@@ -78,7 +78,7 @@ func createTeam(t models.TeamBasic, client *http.Client, blocked *cmap.Concurren
 func teamWorker(basic chan models.TeamBasic, team chan models.Team, client *http.Client, blocked *cmap.ConcurrentMap) {
 	// checks the channel for team objects and passes created teams into the team channel
 	for tBasic := range basic {
-		t, err := createTeam(tBasic, client, blocked)
+		t, err := CreateTeam(tBasic, client, blocked)
 		// if error, do not add the team
 		if err != nil {
 			log.Println("error when creating team. not adding to tournament and blocking...")

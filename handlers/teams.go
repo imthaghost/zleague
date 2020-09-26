@@ -2,11 +2,15 @@ package handlers
 
 import (
 	"encoding/csv"
+	cmap "github.com/orcaman/concurrent-map"
 	"html"
 	"log"
 	"net/http"
 	"strings"
 	"zleague/api/cod"
+	"zleague/api/models"
+	"zleague/api/proxy"
+	"zleague/api/tournament"
 
 	"github.com/labstack/echo/v4"
 )
@@ -34,6 +38,46 @@ func (h *Handler) GetTeam(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, team)
+}
+
+type createTeamPayload struct {
+	TournamentID string `json:"tournament_id"` // id of the tournament oadd the team to
+	Name string `json:"name"` // the name of the team
+	Division string `json:"division"`
+	Players []string `json:"players"`
+}
+
+func (h *Handler) CreateTeam(c echo.Context) error {
+	payload := createTeamPayload{}
+	if err := c.Bind(&payload); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "error binding team payload to json struct")
+	}
+
+	// clean up player names to remove # and replace with %23 cause tracker is dumb
+	var cleanedNames []string
+	for _, team := range payload.Players {
+		cleanedNames = append(cleanedNames, strings.Replace(team, "#", "%23", 1))
+	}
+
+	tBasic := models.TeamBasic{
+		Teamname:  payload.Name,
+		Division:  payload.Division,
+		Teammates: cleanedNames,
+	}
+
+	client := proxy.NewNetClient()
+	blocked := cmap.New()
+
+	team, err := tournament.CreateTeam(tBasic, client, &blocked)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	// insert the team into the db
+	t := models.Tournament{ID: payload.TournamentID}
+	t.AddTeam(h.db, team)
+
+	return c.JSON(200, team)
 }
 
 // GetTeamsByDivision returns all the teams for the given division

@@ -65,6 +65,22 @@ func (t *Tournament) GetTeams(db *mongo.Database, id string) ([]Team, error) {
 	return t.Teams, nil
 }
 
+func (t *Tournament) AddTeam(db *mongo.Database, team Team) {
+	collection := db.Collection("tournaments")
+
+	filter := bson.M{
+		"id": t.ID,
+	}
+
+	update := bson.M{
+		"$push": bson.M{
+			"teams": team,
+		},
+	}
+
+	_ = collection.FindOneAndUpdate(context.TODO(), filter, update)
+}
+
 // GetTournament returns a single tournament struct
 func (t *Tournament) GetTournament(db *mongo.Database, id string) (Tournament, error) {
 	// get tournaments collection and find single tournament
