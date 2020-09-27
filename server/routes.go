@@ -59,4 +59,10 @@ func (s *Server) Routes() {
 	protected.POST("/tournament/team", r.CreateTeam)
 	// delete a route (protected)
 	protected.POST("/tournament/:id/delete", r.DeleteTournament)
+	// force update a tournament
+	protected.POST("/tournament/:id/update/all", r.ForceUpdateLoop)
+	// force update the cache for a tournament
+	protected.POST("/tournament/:id/update/cache", r.ForceUpdateCache)
+	// update the stats on the team
+	protected.POST("/tournament/:id/update/:team", r.UpdateTeam)
 }

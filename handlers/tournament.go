@@ -2,12 +2,12 @@ package handlers
 
 import (
 	"errors"
+	"github.com/labstack/echo/v4"
 	"html"
+	"log"
 	"net/http"
 	"time"
 	"zleague/api/models"
-
-	"github.com/labstack/echo/v4"
 )
 
 // TournamentPayload represents the incoming payload to create a new tournament
@@ -110,6 +110,50 @@ func (h *Handler) UpdateTournament(c echo.Context) error {
 	t.ID = id
 
 	// TODO: Finish this when we get a response back from Omar
+
+	return nil
+}
+
+// ForceUpdateLoop will call the update loop early if we need to
+func (h *Handler) ForceUpdateLoop(c echo.Context) error {
+	id := html.EscapeString(c.Param("id"))
+
+	tournament, err := h.manager.GetTournament(id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, "could not find tournament in manager")
+	}
+
+	log.Println("Forcing update on tournament. ID:", tournament.ID)
+	h.manager.Update(&tournament)
+	tournament.UpdateInDB(h.db)
+	log.Println("Update forced on tournament. ID:", tournament.ID)
+
+	// update the cache
+	t := models.Tournament{}
+	updatedTournament, err := t.GetTournament(h.db, tournament.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "failed to update the tournament in the cache")
+	}
+
+	// update the tournament in cache
+	h.manager.Tournaments.Set(id, updatedTournament)
+
+	return nil
+}
+
+// ForceUpdateCache will upate the cache with the data currently in the database
+func (h *Handler) ForceUpdateCache(c echo.Context) error {
+	id := html.EscapeString(c.Param("id"))
+
+	// get tournament from db
+	t := models.Tournament{}
+	tournament, err := t.GetTournament(h.db, id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, "failed to find tournament with that id in the database")
+	}
+
+	// force update the cache with the tournament in the database
+	h.manager.Tournaments.Set(id, tournament)
 
 	return nil
 }
