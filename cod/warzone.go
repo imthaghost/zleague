@@ -193,7 +193,7 @@ func GetStatData(username string, client *http.Client) (StatData, error) {
 				// close
 				resp.Body.Close()
 				// return custom error
-				err := fmt.Errorf("Respone code: %d", s)
+				err := fmt.Errorf("Respone code: %d %s", s, username)
 				return err
 				// resp - 200 OK
 			} else if s == http.StatusOK {
