@@ -66,6 +66,20 @@ func (h *Handler) GetTournament(c echo.Context) error {
 	return c.JSON(http.StatusOK, t)
 }
 
+func (h *Handler) DeleteTournament(c echo.Context) error {
+	id := html.EscapeString(c.Param("id"))
+
+	// delete tournament from db
+	tournament := models.Tournament{}
+	err := tournament.DeleteTournament(h.db, id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	r := map[string]bool{"success": true}
+	return c.JSON(http.StatusOK, r)
+}
+
 // TournamentExists will return if a tournament exists. We only do this because we do not want to return the entire tournament
 func (h *Handler) TournamentExists(c echo.Context) error {
 	id := html.EscapeString(c.Param("id"))

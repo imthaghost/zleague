@@ -12,7 +12,7 @@ type Match struct {
 	Kills       int       `json:"kills"`
 	Deaths      int       `json:"deaths"`
 	Headshots   int       `json:"headshots"`
-	KD          float64   `json:"kd"`
+	KD          float64   `json:"-"`
 	TimePlayed  string    `json:"time_played"`
 	Placement   int       `json:"placement"`
 	DamageDone  int       `json:"damage_done"`

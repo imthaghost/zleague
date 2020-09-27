@@ -14,6 +14,10 @@ import (
 func (s *Server) Routes() {
 	// Logging
 	s.e.Use(middleware.Logger())
+	// gzip
+	s.e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+		Level: 6,
+	}))
 	// CORS
 	s.e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
@@ -53,4 +57,6 @@ func (s *Server) Routes() {
 	protected.POST("/tournament", r.CreateTournament)
 	// add a team to an existing tournament (protected)
 	protected.POST("/tournament/team", r.CreateTeam)
+	// delete a route (protected)
+	protected.POST("/tournament/:id/delete", r.DeleteTournament)
 }
