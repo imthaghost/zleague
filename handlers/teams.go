@@ -79,6 +79,16 @@ func (h *Handler) CreateTeam(c echo.Context) error {
 	return c.JSON(200, team)
 }
 
+// updateTeamPayload allows us to update certain parts about a team
+type updateTeamPayload struct {
+
+}
+
+// UpdateTeam will update a single team (mainly to correct bad stats)
+func (h *Handler) UpdateTeam(c echo.Context) error {
+	return nil
+}
+
 // GetTeamsByDivision returns all the teams for the given division
 func (h *Handler) GetTeamsByDivision(c echo.Context) error {
 	tournamentID := html.EscapeString(c.Param("id"))
